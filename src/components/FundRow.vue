@@ -1,0 +1,37 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import { formatPence, gbp, parseNum } from '../lib/format'
+import type { Fund } from '../lib/rebalance'
+
+const props = defineProps<{ fund: Fund; canRemove: boolean; prevPence?: number }>()
+defineEmits<{ remove: [] }>()
+
+const worth = computed(() => {
+  const q = parseNum(props.fund.quantity), p = parseNum(props.fund.price)
+  return q !== null && p !== null ? gbp((q * p) / 100) : ''
+})
+const jumped = computed(() => {
+  const p = parseNum(props.fund.price), o = props.prevPence
+  return !!(o && p && (p / o > 1.5 || p / o < 0.5))
+})
+const id = (s: string) => `${s}-${props.fund.id}`
+</script>
+
+<template>
+  <div class="row">
+    <div><label :for="id('n')">Fund name or ticker</label>
+      <input :id="id('n')" v-model="fund.name" type="text" placeholder="e.g. VWRL"></div>
+    <div><label :for="id('q')">Quantity</label>
+      <input :id="id('q')" v-model="fund.quantity" type="text" inputmode="decimal"></div>
+    <div><label :for="id('p')">Price (pence)</label>
+      <input :id="id('p')" v-model="fund.price" type="text" inputmode="decimal" placeholder="1,206.00"
+             @blur="fund.price = formatPence(fund.price)"></div>
+    <div class="suf"><label :for="id('t')">Target (%)</label><span>%</span>
+      <input :id="id('t')" v-model="fund.target" type="text" inputmode="decimal"></div>
+    <div><button v-if="canRemove" type="button" class="x" aria-label="Remove this fund" @click="$emit('remove')">Remove</button></div>
+    <div class="val" :class="{ warn: jumped }">
+      <template v-if="worth">Currently worth {{ worth }}</template>
+      <template v-if="jumped"><template v-if="worth">. </template>⚠ Last year’s price was {{ formatPence(String(prevPence)) }}. Please check this matches the Price column on the platform.</template>
+    </div>
+  </div>
+</template>
