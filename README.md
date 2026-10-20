@@ -9,6 +9,6 @@ npm test           # unit tests for the rebalancing maths
 npm run build      # type-check + production build into dist/
 ```
 
-**Deploy:** push to GitHub, then Settings → Pages → Source: *GitHub Actions*. The workflow in `.github/workflows` tests, builds and publishes on every push to `main`.
+**Deploy:** push to GitHub, then Settings → Pages → Source: _GitHub Actions_. The workflow in `.github/workflows` tests, builds and publishes on every push to `master`.
 
-**Rule:** a fund is flagged when it is off target by more than *Allowed drift* % of its target (default 25), capped at *Ceiling* percentage points (default 5, optional). Maths lives in `src/lib/rebalance.ts`.
+**Rule:** a fund is flagged when it is off target by more than _Allowed drift_ % of its target (default 25), capped at _Ceiling_ percentage points (default 5, optional). Maths lives in `src/lib/rebalance.ts`.

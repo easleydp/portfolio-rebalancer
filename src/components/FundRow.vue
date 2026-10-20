@@ -24,7 +24,7 @@ const id = (s: string) => `${s}-${props.fund.id}`
     <div><label :for="id('q')">Quantity</label>
       <input :id="id('q')" v-model="fund.quantity" type="text" inputmode="decimal"></div>
     <div><label :for="id('p')">Price (pence)</label>
-      <input :id="id('p')" v-model="fund.price" type="text" inputmode="decimal" placeholder="1,206.00"
+      <input :id="id('p')" v-model="fund.price" type="text" inputmode="decimal"
              @blur="fund.price = formatPence(fund.price)"></div>
     <div class="suf"><label :for="id('t')">Target (%)</label><span>%</span>
       <input :id="id('t')" v-model="fund.target" type="text" inputmode="decimal"></div>

@@ -59,7 +59,7 @@ const confirmReset = () => { if (confirm('This will delete everything you have e
 
     <section class="noprint" aria-labelledby="h-chk">
       <h2 id="h-chk">3. Check your numbers</h2>
-      <p class="hint">Find the total value of your portfolio on your platform’s main screen (funds plus any cash) and type it here. We compare it with the figures above to catch slips, such as a price or quantity typed wrongly.</p>
+      <p class="hint">Find the 'Total Value' of your portfolio on your platform’s main screen (funds plus any cash) and type it here. We compare it with the figures above to catch slips, such as a price or quantity typed wrongly.</p>
       <div class="pre cash"><span>£</span>
         <input v-model="state.plat" type="text" inputmode="decimal" placeholder="0.00" aria-label="Total portfolio value shown on your platform, in pounds"></div>
       <div aria-live="polite">
