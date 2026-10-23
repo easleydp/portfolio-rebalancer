@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { formatPence, formatPercent, formatQuantity, gbp, parsePence, parseNum } from '../lib/format'
 import type { Fund } from '../lib/rebalance'
 
-const props = defineProps<{ fund: Fund; canRemove: boolean; prevPence?: number }>()
+const props = defineProps<{ fund: Fund; canRemove: boolean; prevPounds?: number }>()
 defineEmits<{ remove: [] }>()
 
 const worth = computed(() => {
@@ -11,8 +11,14 @@ const worth = computed(() => {
   return q !== null && p !== null ? gbp((q * p) / 100) : ''
 })
 const jumped = computed(() => {
-  const p = parsePence(props.fund.price), o = props.prevPence
-  return !!(o && p && (p / o > 1.5 || p / o < 0.5))
+  const p = parsePence(props.fund.price)
+  if (p === null || !props.prevPounds) return false
+  const o = props.prevPounds * 100
+  return o > 0 && (p / o > 1.5 || p / o < 0.5)
+})
+const prevPenceFormatted = computed(() => {
+  if (!props.prevPounds) return ''
+  return formatPence(String(Number((props.prevPounds * 100).toFixed(4))))
 })
 const id = (s: string) => `${s}-${props.fund.id}`
 </script>
@@ -33,7 +39,7 @@ const id = (s: string) => `${s}-${props.fund.id}`
     <div><button v-if="canRemove" type="button" class="x" aria-label="Remove this fund" @click="$emit('remove')">Remove</button></div>
     <div class="val" :class="{ warn: jumped }">
       <template v-if="worth">Currently worth {{ worth }}</template>
-      <template v-if="jumped"><template v-if="worth">. </template>⚠ Last year’s price was {{ formatPence(String(prevPence)) }}. Please check this matches the Price column on the platform.</template>
+      <template v-if="jumped"><template v-if="worth">. </template>⚠ Last year’s price was {{ prevPenceFormatted }}. Please check this matches the Price column on the platform.</template>
     </div>
   </div>
 </template>
