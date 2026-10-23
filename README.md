@@ -1,10 +1,11 @@
 # Portfolio rebalancer
 
-This single page app tells you whether a portfolio of 2–10 funds needs rebalancing, and what to buy or sell. Nothing leaves the browser.
+This single page app is designed for passive investors who check and rebalance their portfolio infrequently - typically once or twice a year.
+The UI is designed specifically for non-finance savvy users. It tells them whether a portfolio of 2–10 funds needs rebalancing, and what to buy or sell. Nothing leaves the browser.
 
-To save you time, the tool securely saves your data entries right inside your web browser. When you return to check your portfolio next time, your previous entries are automatically filled in, ready to be updated.
+To save time, the tool securely saves the user's data entries inside their web browser (in `localStorage`). When they return to check their portfolio next time, their previous entries are automatically filled in, ready to be updated.
 
-You can access the live page <a href="https://easleydp.github.io/portfolio-rebalancer/">here</a>.
+You can access a live version of the page <a href="https://easleydp.github.io/portfolio-rebalancer/">here</a>.
 
 ## How to use the app
 
