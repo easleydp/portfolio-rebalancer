@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatPence, parseNum } from "./format";
+import { formatPence, formatPercent, parseNum } from "./format";
 import {
   acceptableRange,
   checkTotal,
@@ -28,6 +28,11 @@ describe("parseNum / formatPence", () => {
   it("tidies prices and leaves invalid input alone", () => {
     expect(formatPence("1206")).toBe("1,206.00p");
     expect(formatPence("oops")).toBe("oops");
+  });
+  it("tidies percentages and leaves invalid input alone", () => {
+    expect(formatPercent("30%")).toBe("30");
+    expect(formatPercent(" 30% ")).toBe("30");
+    expect(formatPercent("oops")).toBe("oops");
   });
 });
 

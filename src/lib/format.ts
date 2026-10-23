@@ -10,6 +10,12 @@ export function formatPence(input: string): string {
   return v === null ? input : v.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 4 }) + 'p'
 }
 
+/** Tidy a percentage on blur: "30%" → "30". Invalid input is returned untouched. */
+export function formatPercent(input: string): string {
+  const v = parseNum(input)
+  return v === null ? input : String(v)
+}
+
 export const gbp = (v: number): string =>
   (v < 0 ? '-' : '') + '£' + Math.abs(v).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 

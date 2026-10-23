@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { formatPence, gbp, parseNum } from '../lib/format'
+import { formatPence, formatPercent, gbp, parseNum } from '../lib/format'
 import type { Fund } from '../lib/rebalance'
 
 const props = defineProps<{ fund: Fund; canRemove: boolean; prevPence?: number }>()
@@ -27,7 +27,8 @@ const id = (s: string) => `${s}-${props.fund.id}`
       <input :id="id('p')" v-model="fund.price" type="text" inputmode="decimal"
              @blur="fund.price = formatPence(fund.price)"></div>
     <div class="suf"><label :for="id('t')">Target (%)</label><span>%</span>
-      <input :id="id('t')" v-model="fund.target" type="text" inputmode="decimal"></div>
+      <input :id="id('t')" v-model="fund.target" type="text" inputmode="decimal"
+             @blur="fund.target = formatPercent(fund.target)"></div>
     <div><button v-if="canRemove" type="button" class="x" aria-label="Remove this fund" @click="$emit('remove')">Remove</button></div>
     <div class="val" :class="{ warn: jumped }">
       <template v-if="worth">Currently worth {{ worth }}</template>
