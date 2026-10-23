@@ -9,7 +9,7 @@ const { state, savedAt, parsed, targetsOk, ready, cash, platform, check, plan, a
 const waiting = computed(() => [
   parsed.value.incomplete && 'Every fund needs a name, quantity, a price and a target.',
   parsed.value.holdings.length < 2 && 'Enter at least two funds.',
-  'Targets must add up to exactly 100%.',
+  !targetsOk.value && 'Targets must add up to exactly 100%.',
 ].filter(Boolean).join(' '))
 const savedOn = computed(() => savedAt.value
   ? new Date(savedAt.value).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '')
@@ -64,8 +64,7 @@ const confirmReset = () => { if (confirm('This will delete everything you have e
       <p class="hint">For example, dividends or interest sitting in your account. Leave blank if there is none.</p>
       <div class="pre cash"><span>£</span>
         <input v-model="state.cash" type="text" inputmode="decimal" placeholder="0.00"
-          aria-label="Cash available to invest in pounds"
-          @blur="state.cash = formatPounds(state.cash)">
+          aria-label="Cash available to invest in pounds" @blur="state.cash = formatPounds(state.cash)">
       </div>
     </section>
 
@@ -80,7 +79,7 @@ const confirmReset = () => { if (confirm('This will delete everything you have e
           @blur="state.plat = formatPounds(state.plat)">
       </div>
       <div aria-live="polite">
-        <div v-if="check" class="banner" :class="check.ok ? 'fine' : 'bad'">
+        <div v-if="check" class="banner" :class="check.ok ? 'fine' : 'bad'" aria-live="polite">
           {{ check.ok ? 'The numbers match' : 'The numbers don’t match' }}
           <small>Your funds{{ cash > 0 ? ' and cash' : '' }} come to {{ gbp(check.mine) }}<template v-if="check.ok">;
               your platform says {{ gbp(platform!) }}.</template>
@@ -90,7 +89,7 @@ const confirmReset = () => { if (confirm('This will delete everything you have e
       </div>
     </section>
 
-    <section aria-labelledby="h-res" aria-live="polite">
+    <section aria-labelledby="h-res">
       <h2 id="h-res">4. What to do</h2>
       <div v-if="!ready" class="banner note">Waiting for your details<small>{{ waiting }}</small></div>
       <div v-else-if="!platform" class="banner note">Results are on hold<small>Type your platform’s total value in step
@@ -129,9 +128,9 @@ const confirmReset = () => { if (confirm('This will delete everything you have e
                 <td class="n">{{ pct(r.lo) }} – {{ pct(r.hi) }}</td>
                 <td v-if="plan.needed">
                   <template v-if="r.qty > 0"><span class="buy">Buy {{ r.qty }} share{{ r.qty === 1 ? '' : 's'
-                      }}</span><br>about {{ gbp(r.cost) }}</template>
+                  }}</span><br>about {{ gbp(r.cost) }}</template>
                   <template v-else-if="r.qty < 0"><span class="sell">Sell {{ -r.qty }} share{{ r.qty === -1 ? '' : 's'
-                      }}</span><br>about {{ gbp(-r.cost) }}</template>
+                  }}</span><br>about {{ gbp(-r.cost) }}</template>
                   <span v-else class="hold">Leave as it is</span>
                 </td>
               </tr>

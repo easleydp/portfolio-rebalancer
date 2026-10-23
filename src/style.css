@@ -120,9 +120,6 @@ summary:focus-visible {
   margin-top: -4px;
   min-height: 1px;
 }
-.val.warn {
-  color: var(--warn);
-}
 .pre,
 .suf {
   position: relative;

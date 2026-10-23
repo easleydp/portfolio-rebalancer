@@ -1,45 +1,78 @@
 /** Parse user input such as "1,206.00p", "£12" or "30%". Returns null unless it is a non-negative number. */
 export function parseNum(input: string): number | null {
-  const t = String(input ?? '').trim().replace(/^£/, '').replace(/[p%]$/i, '').replace(/,/g, '').trim()
-  return /^(\d+\.?\d*|\.\d+)$/.test(t) ? Number(t) : null
+  const t = String(input ?? "")
+    .trim()
+    .replace(/^£/, "")
+    .replace(/[p%]$/i, "")
+    .replace(/,/g, "")
+    .trim();
+  return /^(\d+\.?\d*|\.\d+)$/.test(t) ? Number(t) : null;
 }
 
 /** Like parseNum, but for pence-denominated fields: a £ prefix is treated as pounds and
  *  converted to pence (×100). e.g. "£12" → 1200, "1206" → 1206, "1,206.00p" → 1206. */
 export function parsePence(input: string): number | null {
-  const isPounds = String(input ?? '').trim().startsWith('£')
-  const v = parseNum(input)
-  return v === null ? null : isPounds ? v * 100 : v
+  const isPounds = String(input ?? "")
+    .trim()
+    .startsWith("£");
+  const v = parseNum(input);
+  return v === null ? null : isPounds ? v * 100 : v;
 }
 
 /** Tidy a pence price on blur: "1206" → "1,206.00p". A £ prefix is converted first. Invalid input is returned untouched. */
 export function formatPence(input: string): string {
-  const v = parsePence(input)
-  return v === null ? input : v.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 4 }) + 'p'
+  const v = parsePence(input);
+  return v === null
+    ? input
+    : v.toLocaleString("en-GB", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 4,
+      }) + "p";
 }
 
 /** Tidy a quantity on blur: "10000" → "10,000", "100,00" → "10,000". Invalid input is returned untouched. */
 export function formatQuantity(input: string): string {
-  const v = parseNum(input)
-  if (v === null) return input
+  const v = parseNum(input);
+  if (v === null) return input;
   // Preserve up to 10 decimal places (fractional shares), strip trailing zeros after the dot
-  const formatted = v.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 10 })
-  return formatted
+  const formatted = v.toLocaleString("en-GB", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 10,
+  });
+  return formatted;
 }
 
 /** Tidy a pounds amount on blur: "1234.5" → "1,234.50". Invalid input is returned untouched. */
 export function formatPounds(input: string): string {
-  const v = parseNum(input)
-  return v === null ? input : v.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const v = parseNum(input);
+  return v === null
+    ? input
+    : v.toLocaleString("en-GB", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
 }
 
 /** Tidy a percentage on blur: "30%" → "30". Invalid input is returned untouched. */
 export function formatPercent(input: string): string {
-  const v = parseNum(input)
-  return v === null ? input : String(v)
+  const v = parseNum(input);
+  return v === null ? input : String(v);
 }
 
-export const gbp = (v: number): string =>
-  (v < 0 ? '-' : '') + '£' + Math.abs(v).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+export const gbp = (v: number): string => {
+  // If v is a tiny negative floating point remainder (e.g. -0.001 or -1e-7, which
+  // frequently occurs in floating point arithmetic like cash - rows.reduce(...)), v < 0
+  // evaluates to true, but Math.abs(v) rounds to 0.00. Avoids formatting as "-£0.00".
+  const rounded = Math.round(v * 100) / 100;
+  const abs = Math.abs(rounded);
+  return (
+    (rounded < 0 ? "-" : "") +
+    "£" +
+    abs.toLocaleString("en-GB", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+  );
+};
 
-export const pct = (v: number): string => `${Math.round(v * 10) / 10}%`
+export const pct = (v: number): string => `${Math.round(v * 10) / 10}%`;
