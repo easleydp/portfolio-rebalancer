@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatPence, formatPercent, parseNum } from "./format";
+import { formatPence, formatPercent, formatPounds, formatQuantity, parseNum } from "./format";
 import {
   acceptableRange,
   checkTotal,
@@ -33,6 +33,64 @@ describe("parseNum / formatPence", () => {
     expect(formatPercent("30%")).toBe("30");
     expect(formatPercent(" 30% ")).toBe("30");
     expect(formatPercent("oops")).toBe("oops");
+  });
+});
+
+describe("formatQuantity", () => {
+  it("inserts missing thousands separators", () => {
+    expect(formatQuantity("10000")).toBe("10,000");
+    expect(formatQuantity("1000000")).toBe("1,000,000");
+    expect(formatQuantity("1234")).toBe("1,234");
+  });
+  it("fixes separators entered in illegal positions", () => {
+    expect(formatQuantity("100,00")).toBe("10,000");
+    expect(formatQuantity("1,00,000")).toBe("100,000");
+  });
+  it("preserves fractional shares up to 10 decimal places and strips trailing zeros", () => {
+    expect(formatQuantity("1234.5")).toBe("1,234.5");
+    expect(formatQuantity("1000.25")).toBe("1,000.25");
+    expect(formatQuantity("1.1234567890")).toBe("1.123456789");
+  });
+  it("handles small numbers without adding spurious separators", () => {
+    expect(formatQuantity("0")).toBe("0");
+    expect(formatQuantity("999")).toBe("999");
+    expect(formatQuantity("1000")).toBe("1,000");
+  });
+  it("leaves invalid input untouched", () => {
+    expect(formatQuantity("")).toBe("");
+    expect(formatQuantity("abc")).toBe("abc");
+    expect(formatQuantity("-5")).toBe("-5");
+    expect(formatQuantity("1.2.3")).toBe("1.2.3");
+  });
+});
+
+describe("formatPounds", () => {
+  it("inserts missing thousands separators and normalises to 2 decimal places", () => {
+    expect(formatPounds("1234")).toBe("1,234.00");
+    expect(formatPounds("1234.5")).toBe("1,234.50");
+    expect(formatPounds("1234.56")).toBe("1,234.56");
+    expect(formatPounds("1000000")).toBe("1,000,000.00");
+  });
+  it("fixes separators entered in illegal positions", () => {
+    expect(formatPounds("100,00")).toBe("10,000.00");
+    expect(formatPounds("1,00,000")).toBe("100,000.00");
+  });
+  it("accepts a £ prefix (same tolerance as parseNum)", () => {
+    expect(formatPounds("£1234")).toBe("1,234.00");
+    expect(formatPounds("£1,00,0.50")).toBe("1,000.50");
+  });
+  it("rounds to 2 decimal places", () => {
+    expect(formatPounds("1.005")).toBe("1.01");
+    expect(formatPounds("1.004")).toBe("1.00");
+  });
+  it("handles zero and small values", () => {
+    expect(formatPounds("0")).toBe("0.00");
+    expect(formatPounds("999")).toBe("999.00");
+  });
+  it("leaves invalid input untouched", () => {
+    expect(formatPounds("")).toBe("");
+    expect(formatPounds("abc")).toBe("abc");
+    expect(formatPounds("-5")).toBe("-5");
   });
 });
 

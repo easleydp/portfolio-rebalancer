@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { formatPence, formatPercent, gbp, parseNum } from '../lib/format'
+import { formatPence, formatPercent, formatQuantity, gbp, parseNum } from '../lib/format'
 import type { Fund } from '../lib/rebalance'
 
 const props = defineProps<{ fund: Fund; canRemove: boolean; prevPence?: number }>()
@@ -22,7 +22,8 @@ const id = (s: string) => `${s}-${props.fund.id}`
     <div><label :for="id('n')">Fund name or ticker</label>
       <input :id="id('n')" v-model="fund.name" type="text" placeholder="e.g. VWRL"></div>
     <div><label :for="id('q')">Quantity</label>
-      <input :id="id('q')" v-model="fund.quantity" type="text" inputmode="decimal"></div>
+      <input :id="id('q')" v-model="fund.quantity" type="text" inputmode="decimal"
+             @blur="fund.quantity = formatQuantity(fund.quantity)"></div>
     <div><label :for="id('p')">Price (pence)</label>
       <input :id="id('p')" v-model="fund.price" type="text" inputmode="decimal"
              @blur="fund.price = formatPence(fund.price)"></div>

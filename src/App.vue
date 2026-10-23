@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import FundRow from './components/FundRow.vue'
 import { usePortfolio } from './composables/usePortfolio'
-import { gbp, pct } from './lib/format'
+import { formatPounds, gbp, pct } from './lib/format'
 
 const { state, savedAt, parsed, targetsOk, ready, cash, platform, check, plan, prevFor, add, remove, reset } = usePortfolio()
 
@@ -64,7 +64,8 @@ const confirmReset = () => { if (confirm('This will delete everything you have e
       <p class="hint">For example, dividends or interest sitting in your account. Leave blank if there is none.</p>
       <div class="pre cash"><span>£</span>
         <input v-model="state.cash" type="text" inputmode="decimal" placeholder="0.00"
-          aria-label="Cash available to invest in pounds">
+          aria-label="Cash available to invest in pounds"
+          @blur="state.cash = formatPounds(state.cash)">
       </div>
     </section>
 
@@ -75,7 +76,8 @@ const confirmReset = () => { if (confirm('This will delete everything you have e
       </p>
       <div class="pre cash"><span>£</span>
         <input v-model="state.plat" type="text" inputmode="decimal" placeholder="0.00"
-          aria-label="Total portfolio value shown on your platform, in pounds">
+          aria-label="Total portfolio value shown on your platform, in pounds"
+          @blur="state.plat = formatPounds(state.plat)">
       </div>
       <div aria-live="polite">
         <div v-if="check" class="banner" :class="check.ok ? 'fine' : 'bad'">

@@ -10,6 +10,21 @@ export function formatPence(input: string): string {
   return v === null ? input : v.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 4 }) + 'p'
 }
 
+/** Tidy a quantity on blur: "10000" → "10,000", "100,00" → "10,000". Invalid input is returned untouched. */
+export function formatQuantity(input: string): string {
+  const v = parseNum(input)
+  if (v === null) return input
+  // Preserve up to 10 decimal places (fractional shares), strip trailing zeros after the dot
+  const formatted = v.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 10 })
+  return formatted
+}
+
+/** Tidy a pounds amount on blur: "1234.5" → "1,234.50". Invalid input is returned untouched. */
+export function formatPounds(input: string): string {
+  const v = parseNum(input)
+  return v === null ? input : v.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
 /** Tidy a percentage on blur: "30%" → "30". Invalid input is returned untouched. */
 export function formatPercent(input: string): string {
   const v = parseNum(input)
