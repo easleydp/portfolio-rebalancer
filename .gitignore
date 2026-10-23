@@ -2,3 +2,10 @@ scratch.txt
 node_modules
 dist
 *.local
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

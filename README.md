@@ -32,9 +32,10 @@ This is a client-side Vue 3 + TypeScript + Vite app.
 
 ```
 npm install
-npm run dev    # local dev server
-npm test       # unit tests for the rebalancing maths
-npm run build  # type-check + production build into dist/
+npm run dev         # local dev server
+npm test            # unit tests for the rebalancing maths
+npm run test:e2e    # end-to-end (browser based) tests
+npm run build       # type-check + production build into dist/
 ```
 
 **Deploy:** push to GitHub, then Settings → Pages → Source: _GitHub Actions_. The workflow in `.github/workflows` tests, builds and publishes on every push to `master`.
