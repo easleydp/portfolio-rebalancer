@@ -1,4 +1,4 @@
-import { parsePence, parseNum } from "./format";
+import { parsePence } from "./format";
 import type { Fund, Settings } from "./rebalance";
 
 export interface State {
