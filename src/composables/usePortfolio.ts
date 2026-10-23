@@ -3,16 +3,45 @@ import { parseNum } from "../lib/format";
 import { checkTotal, rebalance, toHoldings } from "../lib/rebalance";
 import { clearSaved, defaults, load, newFund, save } from "../lib/storage";
 
+const DEBOUNCE_MS = 500;
+
 export function usePortfolio() {
   const state = reactive(load());
   const savedAt = ref(state.saved);
+  let saveTimer: ReturnType<typeof setTimeout> | undefined;
+  let isResetting = false;
+
+  const flushSave = () => {
+    if (saveTimer !== undefined) {
+      clearTimeout(saveTimer);
+      saveTimer = undefined;
+      savedAt.value = save(state);
+    }
+  };
+
   watch(
     state,
     () => {
-      savedAt.value = save(state);
+      if (isResetting) return;
+      if (saveTimer !== undefined) clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => {
+        saveTimer = undefined;
+        savedAt.value = save(state);
+      }, DEBOUNCE_MS);
     },
     { deep: true }
   );
+
+  if (typeof window !== "undefined") {
+    window.addEventListener("beforeunload", flushSave);
+    window.addEventListener("pagehide", flushSave);
+    window.addEventListener("beforeprint", flushSave);
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "hidden") flushSave();
+      });
+    }
+  }
 
   const parsed = computed(() => toHoldings(state.funds));
   const targetsOk = computed(
@@ -54,11 +83,17 @@ export function usePortfolio() {
     if (state.funds.length > 2) state.funds.splice(i, 1);
   };
   function reset() {
+    if (saveTimer !== undefined) {
+      clearTimeout(saveTimer);
+      saveTimer = undefined;
+    }
+    isResetting = true;
     Object.assign(state, defaults());
+    clearSaved();
+    savedAt.value = "";
     nextTick(() => {
-      clearSaved();
-      savedAt.value = "";
-    }); // after the watcher has run
+      isResetting = false;
+    });
   }
   return {
     state,
@@ -74,5 +109,6 @@ export function usePortfolio() {
     add,
     remove,
     reset,
+    flushSave,
   };
 }
