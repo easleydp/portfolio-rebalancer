@@ -1,4 +1,4 @@
-import { parseNum } from './format'
+import { parsePence, parseNum } from './format'
 
 /** A fund row exactly as typed. Price is in pence. */
 export interface Fund { id: string; name: string; quantity: string; price: string; target: string }
@@ -19,7 +19,7 @@ export function toHoldings(funds: Fund[]) {
   let incomplete = false
   let targetSum = 0
   funds.forEach((f, i) => {
-    const quantity = parseNum(f.quantity), pence = parseNum(f.price), target = parseNum(f.target)
+    const quantity = parseNum(f.quantity), pence = parsePence(f.price), target = parseNum(f.target)
     targetSum += target ?? 0
     if (!(f.name || f.quantity || f.price || f.target)) return
     if (quantity === null || pence === null || target === null || pence <= 0) { incomplete = true; return }

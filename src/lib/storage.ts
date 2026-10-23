@@ -1,4 +1,4 @@
-import { parseNum } from "./format";
+import { parsePence, parseNum } from "./format";
 import type { Fund, Settings } from "./rebalance";
 
 export interface State {
@@ -37,7 +37,7 @@ export function rollover(s: State, now: number): State {
   if (!Number.isFinite(t) || now - t <= NEW_YEAR_MS) return s;
   const prev: Record<string, number> = {};
   for (const f of s.funds) {
-    const p = parseNum(f.price);
+    const p = parsePence(f.price);
     if (key(f.name) && p !== null && p > 0) prev[key(f.name)] = p;
   }
   return { ...s, prev, plat: "" };

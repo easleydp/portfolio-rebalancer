@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatPence, formatPercent, formatPounds, formatQuantity, parseNum } from "./format";
+import { formatPence, formatPercent, formatPounds, formatQuantity, parsePence, parseNum } from "./format";
 import {
   acceptableRange,
   checkTotal,
@@ -18,7 +18,7 @@ const opts = { rel: 25, cap: 5 as number | null, whole: true };
 describe("parseNum / formatPence", () => {
   it("accepts pence, pounds, commas and percent signs", () => {
     expect(parseNum("1,206.00p")).toBe(1206);
-    expect(parseNum("£12")).toBe(12);
+    expect(parseNum("£12")).toBe(12); // strips £ and returns the literal number
     expect(parseNum(" 30% ")).toBe(30);
   });
   it("rejects junk and negatives", () => {
@@ -27,12 +27,30 @@ describe("parseNum / formatPence", () => {
   });
   it("tidies prices and leaves invalid input alone", () => {
     expect(formatPence("1206")).toBe("1,206.00p");
+    expect(formatPence("£12")).toBe("1,200.00p"); // £12 pounds → 1200 pence
     expect(formatPence("oops")).toBe("oops");
   });
   it("tidies percentages and leaves invalid input alone", () => {
     expect(formatPercent("30%")).toBe("30");
     expect(formatPercent(" 30% ")).toBe("30");
     expect(formatPercent("oops")).toBe("oops");
+  });
+});
+
+describe("parsePence", () => {
+  it("converts a £-prefixed value from pounds to pence", () => {
+    expect(parsePence("£12")).toBe(1200);
+    expect(parsePence("£1,206")).toBe(120600);
+    expect(parsePence("£0.50")).toBe(50);
+  });
+  it("passes through plain pence values unchanged", () => {
+    expect(parsePence("1206")).toBe(1206);
+    expect(parsePence("1,206.00p")).toBe(1206);
+  });
+  it("returns null for invalid input", () => {
+    expect(parsePence("")).toBeNull();
+    expect(parsePence("abc")).toBeNull();
+    expect(parsePence("-5")).toBeNull();
   });
 });
 

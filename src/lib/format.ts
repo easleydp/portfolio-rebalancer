@@ -4,9 +4,17 @@ export function parseNum(input: string): number | null {
   return /^(\d+\.?\d*|\.\d+)$/.test(t) ? Number(t) : null
 }
 
-/** Tidy a pence price on blur: "1206" → "1,206.00p". Invalid input is returned untouched. */
-export function formatPence(input: string): string {
+/** Like parseNum, but for pence-denominated fields: a £ prefix is treated as pounds and
+ *  converted to pence (×100). e.g. "£12" → 1200, "1206" → 1206, "1,206.00p" → 1206. */
+export function parsePence(input: string): number | null {
+  const isPounds = String(input ?? '').trim().startsWith('£')
   const v = parseNum(input)
+  return v === null ? null : isPounds ? v * 100 : v
+}
+
+/** Tidy a pence price on blur: "1206" → "1,206.00p". A £ prefix is converted first. Invalid input is returned untouched. */
+export function formatPence(input: string): string {
+  const v = parsePence(input)
   return v === null ? input : v.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 4 }) + 'p'
 }
 

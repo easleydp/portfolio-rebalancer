@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { formatPence, formatPercent, formatQuantity, gbp, parseNum } from '../lib/format'
+import { formatPence, formatPercent, formatQuantity, gbp, parsePence, parseNum } from '../lib/format'
 import type { Fund } from '../lib/rebalance'
 
 const props = defineProps<{ fund: Fund; canRemove: boolean; prevPence?: number }>()
 defineEmits<{ remove: [] }>()
 
 const worth = computed(() => {
-  const q = parseNum(props.fund.quantity), p = parseNum(props.fund.price)
+  const q = parseNum(props.fund.quantity), p = parsePence(props.fund.price)
   return q !== null && p !== null ? gbp((q * p) / 100) : ''
 })
 const jumped = computed(() => {
-  const p = parseNum(props.fund.price), o = props.prevPence
+  const p = parsePence(props.fund.price), o = props.prevPence
   return !!(o && p && (p / o > 1.5 || p / o < 0.5))
 })
 const id = (s: string) => `${s}-${props.fund.id}`
