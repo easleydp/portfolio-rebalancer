@@ -1,7 +1,7 @@
 import { computed, nextTick, reactive, ref, watch } from "vue";
 import { parseNum } from "../lib/format";
 import { checkTotal, rebalance, toHoldings } from "../lib/rebalance";
-import { clearSaved, defaults, key, load, newFund, save } from "../lib/storage";
+import { clearSaved, defaults, load, newFund, save } from "../lib/storage";
 
 export function usePortfolio() {
   const state = reactive(load());
@@ -47,7 +47,6 @@ export function usePortfolio() {
     });
   });
 
-  const prevFor = (name: string): number | undefined => state.prev?.[key(name)];
   const add = () => {
     if (state.funds.length < 10) state.funds.push(newFund());
   };
@@ -72,7 +71,6 @@ export function usePortfolio() {
     platform,
     check,
     plan,
-    prevFor,
     add,
     remove,
     reset,

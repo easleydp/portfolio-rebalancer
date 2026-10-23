@@ -5,7 +5,6 @@ import {
   defaults,
   fromStoredFund,
   load,
-  rollover,
   save,
   toStoredFund,
   toStoredState,
@@ -130,7 +129,6 @@ describe('state serialization & localStorage persistence', () => {
       plat: '44,000.00',
       settings: { rel: '25', cap: '5', whole: true },
       saved: '',
-      prev: null,
     }
 
     const stored = toStoredState(state, '2026-10-23T12:00:00.000Z')
@@ -147,7 +145,6 @@ describe('state serialization & localStorage persistence', () => {
         whole: true,
       },
       saved: '2026-10-23T12:00:00.000Z',
-      prev: null,
     })
   })
 
@@ -163,7 +160,6 @@ describe('state serialization & localStorage persistence', () => {
       plat: '44,000.00',
       settings: { rel: '25', cap: '5', whole: true },
       saved: '',
-      prev: null,
     }
 
     const savedAt = save(state)
@@ -208,48 +204,5 @@ describe('state serialization & localStorage persistence', () => {
     expect(localStorage.getItem(KEY)).toBeTruthy()
     clearSaved()
     expect(localStorage.getItem(KEY)).toBeNull()
-  })
-})
-
-describe('rollover', () => {
-  it('stores previous prices in pounds when older than 60 days', () => {
-    const t0 = Date.parse('2026-01-01T00:00:00Z')
-    const t61DaysLater = t0 + 61 * 864e5
-
-    const state: State = {
-      funds: [
-        { id: 'f1', name: 'VWRL', quantity: '100', price: '2,000.05p', target: '50' },
-        { id: 'f2', name: 'VUAG', quantity: '200', price: '1,206.00p', target: '50' },
-      ],
-      cash: '100.00',
-      plat: '5,000.00',
-      settings: { rel: '25', cap: '5', whole: true },
-      saved: new Date(t0).toISOString(),
-      prev: null,
-    }
-
-    const updated = rollover(state, t61DaysLater)
-    expect(updated.plat).toBe('')
-    expect(updated.prev).toEqual({
-      vwrl: 20.0005,
-      vuag: 12.06,
-    })
-  })
-
-  it('keeps state unchanged if within 60 days', () => {
-    const t0 = Date.parse('2026-01-01T00:00:00Z')
-    const t10DaysLater = t0 + 10 * 864e5
-
-    const state: State = {
-      funds: [{ id: 'f1', name: 'VWRL', quantity: '100', price: '2,000.05p', target: '50' }],
-      cash: '100.00',
-      plat: '5,000.00',
-      settings: { rel: '25', cap: '5', whole: true },
-      saved: new Date(t0).toISOString(),
-      prev: { vwrl: 18.5 },
-    }
-
-    const updated = rollover(state, t10DaysLater)
-    expect(updated).toEqual(state)
   })
 })

@@ -4,7 +4,7 @@ import FundRow from './components/FundRow.vue'
 import { usePortfolio } from './composables/usePortfolio'
 import { formatPounds, gbp, pct } from './lib/format'
 
-const { state, savedAt, parsed, targetsOk, ready, cash, platform, check, plan, prevFor, add, remove, reset } = usePortfolio()
+const { state, savedAt, parsed, targetsOk, ready, cash, platform, check, plan, add, remove, reset } = usePortfolio()
 
 const waiting = computed(() => [
   parsed.value.incomplete && 'Every fund needs a name, quantity, a price and a target.',
@@ -49,7 +49,7 @@ const confirmReset = () => { if (confirm('This will delete everything you have e
       <p class="hint">One row per fund. Copy the “Price” column from your investment platform’s dashboard, in pence (for
         example 1,206.00). Everything you type is saved on this computer.</p>
       <FundRow v-for="(f, i) in state.funds" :key="f.id" :fund="f" :can-remove="state.funds.length > 2"
-        :prev-pounds="prevFor(f.name)" @remove="remove(i)" />
+        @remove="remove(i)" />
       <div class="bar">
         <button type="button" :disabled="state.funds.length >= 10" @click="add">+ Add a fund</button>
         <div class="total" :class="targetsOk ? 'ok' : 'bad'" aria-live="polite">

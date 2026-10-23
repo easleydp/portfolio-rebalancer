@@ -14,7 +14,6 @@ export interface State {
   plat: string;
   settings: Settings;
   saved: string;
-  prev: Record<string, number> | null; // prices in pounds
 }
 
 export interface StoredFund {
@@ -37,11 +36,9 @@ export interface StoredState {
   plat: number | null; // in pounds
   settings: StoredSettings;
   saved: string;
-  prev: Record<string, number> | null; // in pounds
 }
 
 export const KEY = "portfolio-rebalancer-v2";
-const NEW_YEAR_MS = 60 * 864e5;
 let counter = 0;
 
 export const newFund = (): Fund => ({
@@ -58,10 +55,8 @@ export const defaults = (): State => ({
   plat: "",
   settings: { rel: "25", cap: "5", whole: true },
   saved: "",
-  prev: null,
 });
 
-export const key = (name: string): string => name.trim().toLowerCase();
 const str = (x: unknown, d = ""): string => (typeof x === "string" ? x : d);
 const num = (x: unknown): number | null =>
   typeof x === "number" && Number.isFinite(x) ? x : null;
@@ -105,26 +100,11 @@ export function toStoredState(s: State, saved: string): StoredState {
       whole: s.settings.whole !== false,
     },
     saved,
-    prev: s.prev,
   };
 }
 
-/** If the last save was over 60 days ago, remember those prices for year-on-year checks (in pounds) and clear the stale platform total. */
-export function rollover(s: State, now: number): State {
-  const t = Date.parse(s.saved);
-  if (!Number.isFinite(t) || now - t <= NEW_YEAR_MS) return s;
-  const prev: Record<string, number> = {};
-  for (const f of s.funds) {
-    const pence = parsePence(f.price);
-    if (key(f.name) && pence !== null && pence > 0) {
-      prev[key(f.name)] = pence / 100; // in pounds
-    }
-  }
-  return { ...s, prev, plat: "" };
-}
-
 /** Load saved state, tolerating missing, corrupt or older data. */
-export function load(now = Date.now()): State {
+export function load(): State {
   try {
     const raw = localStorage.getItem(KEY);
     const p = raw ? JSON.parse(raw) : null;
@@ -133,36 +113,24 @@ export function load(now = Date.now()): State {
       p.settings && typeof p.settings === "object"
         ? (p.settings as Record<string, unknown>)
         : {};
-    const prev: Record<string, number> = {};
-    if (p.prev && typeof p.prev === "object") {
-      for (const [k, v] of Object.entries(p.prev)) {
-        if (typeof v === "number" && Number.isFinite(v) && v > 0) {
-          prev[k] = v;
-        }
-      }
-    }
     const cashNum = num(p.cash);
     const platNum = num(p.plat);
     const relNum = num(s.rel);
     const capNum = num(s.cap);
 
-    return rollover(
-      {
-        funds: p.funds
-          .slice(0, 10)
-          .map((f: Record<string, unknown>) => fromStoredFund(f ?? {})),
-        cash: cashNum !== null ? formatPounds(String(cashNum)) : "",
-        plat: platNum !== null ? formatPounds(String(platNum)) : "",
-        settings: {
-          rel: relNum !== null ? String(relNum) : "25",
-          cap: capNum !== null ? String(capNum) : "",
-          whole: s.whole !== false,
-        },
-        saved: str(p.saved),
-        prev: Object.keys(prev).length ? prev : null,
+    return {
+      funds: p.funds
+        .slice(0, 10)
+        .map((f: Record<string, unknown>) => fromStoredFund(f ?? {})),
+      cash: cashNum !== null ? formatPounds(String(cashNum)) : "",
+      plat: platNum !== null ? formatPounds(String(platNum)) : "",
+      settings: {
+        rel: relNum !== null ? String(relNum) : "25",
+        cap: capNum !== null ? String(capNum) : "",
+        whole: s.whole !== false,
       },
-      now
-    );
+      saved: str(p.saved),
+    };
   } catch {
     return defaults();
   }
