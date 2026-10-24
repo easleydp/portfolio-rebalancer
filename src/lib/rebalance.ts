@@ -97,22 +97,24 @@ export function checkTotal(
     };
   const close = (x: number) => Math.abs(x - platform) / platform <= TOLERANCE;
   if (close(mine)) return { ok: true, mine };
-  const factors: [number, string][] = [
-    [100, "100 times too small (is it in pounds rather than pence?)"],
-    [0.01, "100 times too big"],
-    [10, "10 times too small"],
-    [0.1, "10 times too big"],
-  ];
-  for (const [k, why] of factors)
-    for (const h of holdings) {
-      const v = h.quantity * h.price;
-      if (close(total - v + v * k + cash))
-        return {
-          ok: false,
-          mine,
-          hint: `The price or quantity for ${h.name} looks ${why}.`,
-        };
-    }
+  /* Too clever - sometimes draws the wrong conclusion, which could really confuse the user. 
+     Better to just let the user sleuth it out. */
+  // const factors: [number, string][] = [
+  //   [100, "100 times too small (is it in pounds rather than pence?)"],
+  //   [0.01, "100 times too big"],
+  //   [10, "10 times too small"],
+  //   [0.1, "10 times too big"],
+  // ];
+  // for (const [k, why] of factors)
+  //   for (const h of holdings) {
+  //     const v = h.quantity * h.price;
+  //     if (close(total - v + v * k + cash))
+  //       return {
+  //         ok: false,
+  //         mine,
+  //         hint: `The price or quantity for ${h.name} looks ${why}.`,
+  //       };
+  //   }
   const hint =
     (platform > mine && cash === 0
       ? "Is there cash in the account? Enter it in step 2. "
