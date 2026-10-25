@@ -29,7 +29,7 @@ export function usePortfolio() {
         savedAt.value = save(state);
       }, DEBOUNCE_MS);
     },
-    { deep: true }
+    { deep: true },
   );
 
   if (typeof window !== "undefined") {
@@ -44,19 +44,12 @@ export function usePortfolio() {
   }
 
   const parsed = computed(() => toHoldings(state.funds));
-  const targetsOk = computed(
-    () => Math.abs(parsed.value.targetSum - 100) < 0.005
-  );
+  const targetsOk = computed(() => Math.abs(parsed.value.targetSum - 100) < 0.005);
   const ready = computed(
-    () =>
-      !parsed.value.incomplete &&
-      targetsOk.value &&
-      parsed.value.holdings.length >= 2
+    () => !parsed.value.incomplete && targetsOk.value && parsed.value.holdings.length >= 2,
   );
   const cash = computed(() => Math.max(0, parseNum(state.cash) ?? 0));
-  const total = computed(() =>
-    parsed.value.holdings.reduce((a, h) => a + h.quantity * h.price, 0)
-  );
+  const total = computed(() => parsed.value.holdings.reduce((a, h) => a + h.quantity * h.price, 0));
   const platform = computed(() => {
     const v = parseNum(state.plat);
     return v !== null && v > 0 ? v : null;
@@ -64,7 +57,7 @@ export function usePortfolio() {
   const check = computed(() =>
     ready.value && platform.value !== null && total.value > 0
       ? checkTotal(parsed.value.holdings, cash.value, platform.value)
-      : null
+      : null,
   );
   const plan = computed(() => {
     if (!ready.value || !check.value?.ok || total.value <= 0) return null;

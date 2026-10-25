@@ -128,9 +128,9 @@ const confirmReset = () => { if (confirm('This will delete everything you have e
                 <td class="n">{{ pct(r.lo) }} – {{ pct(r.hi) }}</td>
                 <td v-if="plan.needed">
                   <template v-if="r.qty > 0"><span class="buy">Buy {{ r.qty }} share{{ r.qty === 1 ? '' : 's'
-                  }}</span><br>about {{ gbp(r.cost) }}</template>
+                      }}</span><br>about {{ gbp(r.cost) }}</template>
                   <template v-else-if="r.qty < 0"><span class="sell">Sell {{ -r.qty }} share{{ r.qty === -1 ? '' : 's'
-                  }}</span><br>about {{ gbp(-r.cost) }}</template>
+                      }}</span><br>about {{ gbp(-r.cost) }}</template>
                   <span v-else class="hold">Leave as it is</span>
                 </td>
               </tr>

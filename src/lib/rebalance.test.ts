@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  acceptableRange,
-  checkTotal,
-  rebalance,
-  toHoldings,
-} from "./rebalance";
+import { acceptableRange, checkTotal, rebalance, toHoldings } from "./rebalance";
 
 const h = (name: string, quantity: number, price: number, target: number) => ({
   name,
@@ -27,12 +22,13 @@ describe("acceptableRange", () => {
 });
 
 describe("toHoldings", () => {
-  const f = (
-    name: string,
-    quantity: string,
-    price: string,
-    target: string
-  ) => ({ id: name, name, quantity, price, target });
+  const f = (name: string, quantity: string, price: string, target: string) => ({
+    id: name,
+    name,
+    quantity,
+    price,
+    target,
+  });
   it("converts pence to pounds and sums targets", () => {
     const r = toHoldings([
       f("A", "10", "1,206.00p", "60"),
@@ -49,9 +45,7 @@ describe("toHoldings", () => {
 
 describe("rebalance", () => {
   it("reports no action when every fund is in range", () => {
-    expect(
-      rebalance([h("A", 52, 1, 50), h("B", 48, 1, 50)], 0, opts).needed
-    ).toBe(false);
+    expect(rebalance([h("A", 52, 1, 50), h("B", 48, 1, 50)], 0, opts).needed).toBe(false);
   });
   it("flags a small fund that has drifted relatively far, though under 5 points", () => {
     const p = rebalance([h("A", 87, 1, 90), h("B", 13, 1, 10)], 0, opts); // B is 13% vs 10%: 3 points, 30% relative
@@ -78,17 +72,19 @@ describe("checkTotal", () => {
   it("accepts a close match", () => {
     expect(checkTotal([h("A", 100, 1.5, 100)], 10, 161).ok).toBe(true);
   });
-  it("spots a price typed in pounds instead of pence", () => {
-    const r = checkTotal([h("A", 100, 12.06, 60), h("B", 50, 4, 40)], 0, 1406); // A should be £1,206
-    expect(r.ok).toBe(true);
-    const slip = checkTotal(
-      [h("A", 100, 0.1206, 60), h("B", 50, 4, 40)],
-      0,
-      1406
-    );
-    expect(slip).toMatchObject({ ok: false });
-    expect(!slip.ok && slip.hint).toMatch(/A.*100 times too small/);
-  });
+  /* Too clever - sometimes draws the wrong conclusion, which could really confuse the user. 
+     Better to just let the user sleuth it out. */
+  // it("spots a price typed in pounds instead of pence", () => {
+  //   const r = checkTotal([h("A", 100, 12.06, 60), h("B", 50, 4, 40)], 0, 1406); // A should be £1,206
+  //   expect(r.ok).toBe(true);
+  //   const slip = checkTotal(
+  //     [h("A", 100, 0.1206, 60), h("B", 50, 4, 40)],
+  //     0,
+  //     1406
+  //   );
+  //   expect(slip).toMatchObject({ ok: false });
+  //   expect(!slip.ok && slip.hint).toMatch(/A.*100 times too small/);
+  // });
   it("suggests entering cash when the platform total is higher", () => {
     const r = checkTotal([h("A", 10, 10, 100)], 0, 200);
     expect(!r.ok && r.hint).toMatch(/cash/);

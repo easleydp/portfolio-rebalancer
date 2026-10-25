@@ -58,8 +58,7 @@ export const defaults = (): State => ({
 });
 
 const str = (x: unknown, d = ""): string => (typeof x === "string" ? x : d);
-const num = (x: unknown): number | null =>
-  typeof x === "number" && Number.isFinite(x) ? x : null;
+const num = (x: unknown): number | null => (typeof x === "number" && Number.isFinite(x) ? x : null);
 
 /** Convert a UI Fund row into pure numbers for storage (price stored in pounds). */
 export function toStoredFund(f: Fund): StoredFund {
@@ -110,18 +109,14 @@ export function load(): State {
     const p = raw ? JSON.parse(raw) : null;
     if (!p || !Array.isArray(p.funds) || !p.funds.length) return defaults();
     const s =
-      p.settings && typeof p.settings === "object"
-        ? (p.settings as Record<string, unknown>)
-        : {};
+      p.settings && typeof p.settings === "object" ? (p.settings as Record<string, unknown>) : {};
     const cashNum = num(p.cash);
     const platNum = num(p.plat);
     const relNum = num(s.rel);
     const capNum = num(s.cap);
 
     return {
-      funds: p.funds
-        .slice(0, 10)
-        .map((f: Record<string, unknown>) => fromStoredFund(f ?? {})),
+      funds: p.funds.slice(0, 10).map((f: Record<string, unknown>) => fromStoredFund(f ?? {})),
       cash: cashNum !== null ? formatPounds(String(cashNum)) : "",
       plat: platNum !== null ? formatPounds(String(platNum)) : "",
       settings: {

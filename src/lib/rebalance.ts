@@ -38,9 +38,7 @@ export interface Plan {
   left: number;
   worst: Row;
 }
-export type Check =
-  | { ok: true; mine: number }
-  | { ok: false; mine: number; hint: string };
+export type Check = { ok: true; mine: number } | { ok: false; mine: number; hint: string };
 
 export const TOLERANCE = 0.05;
 
@@ -69,11 +67,7 @@ export function toHoldings(funds: Fund[]) {
 }
 
 /** Acceptable weight range (%) for a target: ±rel% of the target, limited to ±cap points when cap is set. */
-export function acceptableRange(
-  target: number,
-  rel: number,
-  cap: number | null
-): [number, number] {
+export function acceptableRange(target: number, rel: number, cap: number | null): [number, number] {
   const safeRel = Math.max(0, rel);
   const safeCap = cap !== null ? Math.max(0, cap) : null;
   let half = (target * safeRel) / 100;
@@ -82,11 +76,7 @@ export function acceptableRange(
 }
 
 /** Compare our total (funds + cash, £) with the platform's. On a mismatch, try to name the likely slip. */
-export function checkTotal(
-  holdings: Holding[],
-  cash: number,
-  platform: number
-): Check {
+export function checkTotal(holdings: Holding[], cash: number, platform: number): Check {
   const total = holdings.reduce((a, h) => a + h.quantity * h.price, 0);
   const mine = total + cash;
   if (platform <= 0)
@@ -116,9 +106,8 @@ export function checkTotal(
   //       };
   //   }
   const hint =
-    (platform > mine && cash === 0
-      ? "Is there cash in the account? Enter it in step 2. "
-      : "") + "Otherwise check each price and quantity.";
+    (platform > mine && cash === 0 ? "Is there cash in the account? Enter it in step 2. " : "") +
+    "Otherwise check each price and quantity.";
   return { ok: false, mine, hint };
 }
 
@@ -126,13 +115,11 @@ export function checkTotal(
 export function rebalance(
   holdings: Holding[],
   cash: number,
-  o: { rel: number; cap: number | null; whole: boolean }
+  o: { rel: number; cap: number | null; whole: boolean },
 ): Plan {
   const total = holdings.reduce((a, h) => a + h.quantity * h.price, 0);
   if (!holdings.length || total <= 0) {
-    throw new Error(
-      "`rebalance` requires at least one holding with positive total value"
-    );
+    throw new Error("`rebalance` requires at least one holding with positive total value");
   }
   const newTotal = total + cash;
   const rows: Row[] = holdings.map((h) => {
@@ -144,10 +131,7 @@ export function rebalance(
     if (o.whole) {
       q = q > 0 ? Math.floor(q + 1e-9) : -Math.min(h.quantity, Math.round(-q));
     } else {
-      q =
-        q > 0
-          ? Math.round(q * 1000) / 1000
-          : -Math.min(h.quantity, Math.round(-q * 1000) / 1000);
+      q = q > 0 ? Math.round(q * 1000) / 1000 : -Math.min(h.quantity, Math.round(-q * 1000) / 1000);
     }
     return {
       ...h,
@@ -163,5 +147,12 @@ export function rebalance(
   });
   const left = cash - rows.reduce((a, r) => a + r.cost, 0);
   const worst = rows.reduce((a, b) => (b.drift < a.drift ? b : a));
-  return { rows, needed: rows.some((r) => r.off), total, cash, left, worst };
+  return {
+    rows,
+    needed: rows.some((r) => r.off),
+    total,
+    cash,
+    left,
+    worst,
+  };
 }

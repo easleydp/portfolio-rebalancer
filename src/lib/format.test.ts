@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { formatPence, formatPercent, formatPounds, formatQuantity, parsePence, parseNum } from "./format";
+import {
+  formatPence,
+  formatPercent,
+  formatPounds,
+  formatQuantity,
+  parsePence,
+  parseNum,
+} from "./format";
 
 describe("parseNum / formatPence", () => {
   it("accepts pence, pounds, commas and percent signs", () => {
@@ -8,8 +15,9 @@ describe("parseNum / formatPence", () => {
     expect(parseNum(" 30% ")).toBe(30);
   });
   it("rejects junk and negatives", () => {
-    for (const s of ["", "abc", "-5", "1.2.3", "p"])
+    for (const s of ["", "abc", "-5", "1.2.3", "p"]) {
       expect(parseNum(s)).toBeNull();
+    }
   });
   it("tidies prices and leaves invalid input alone", () => {
     expect(formatPence("1206")).toBe("1,206.00p");
