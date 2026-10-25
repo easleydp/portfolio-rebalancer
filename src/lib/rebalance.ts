@@ -1,3 +1,4 @@
+/** Validates portfolio holdings and calculates checks, acceptable ranges and trades. */
 import { parsePence, parseNum } from "./format";
 
 /** A fund row exactly as typed. Price is in pence. */

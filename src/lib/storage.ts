@@ -1,3 +1,4 @@
+/** Loads, saves and clears the portfolio state stored in the browser. */
 import {
   formatPence,
   formatPercent,

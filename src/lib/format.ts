@@ -1,3 +1,4 @@
+/** Parses and formats portfolio values for display and user input. */
 /** Parse user input such as "1,206.00p", "£12" or "30%". Returns null unless it is a non-negative number. */
 export function parseNum(input: string): number | null {
   const t = String(input ?? "")

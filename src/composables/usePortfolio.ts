@@ -1,3 +1,4 @@
+/** Manages reactive portfolio state, persistence and derived rebalancing results. */
 import { computed, nextTick, reactive, ref, watch } from "vue";
 import { parseNum } from "../lib/format";
 import { checkTotal, rebalance, toHoldings } from "../lib/rebalance";
