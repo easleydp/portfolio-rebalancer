@@ -14,7 +14,7 @@ async function assertPageIsClear(page: Page) {
     await expect(row.getByLabel("Target (%)")).toHaveValue("");
   }
   await expect(fundsSection.locator(".total.bad")).toHaveText(
-    "Targets add up to 0% – they need to add up to 100%"
+    "Targets add up to 0% – they need to add up to 100%",
   );
 
   const cashInput = cashSection.getByLabel("Cash available to invest in pounds");
@@ -23,7 +23,7 @@ async function assertPageIsClear(page: Page) {
   await expect(cashSection.locator(".banner")).toHaveCount(0);
 
   const totalInput = numbersSection.getByLabel(
-    "Total portfolio value shown on your platform, in pounds"
+    "Total portfolio value shown on your platform, in pounds",
   );
   await expect(totalInput).toHaveValue("");
   await expect(totalInput).toHaveAttribute("placeholder", "0.00");
@@ -32,7 +32,7 @@ async function assertPageIsClear(page: Page) {
   await expect(actionsSection.locator(".banner")).toHaveCount(1);
   await expect(actionsSection.locator(".banner.note")).toContainText("Waiting for your details");
   await expect(actionsSection.locator(".banner.note small")).toHaveText(
-    "Enter at least two funds. Targets must add up to exactly 100%."
+    "Enter at least two funds. Targets must add up to exactly 100%.",
   );
   await expect(actionsSection.locator("table")).toHaveCount(0);
 
@@ -75,18 +75,18 @@ test("UI overall flow", async ({ page }) => {
   const actionsSection = page.getByRole("region", { name: "4. What to do" });
   await expect(actionsSection.locator(".banner.note")).toContainText("Waiting for your details");
   await expect(actionsSection.locator(".banner.note small")).toHaveText(
-    "Every fund needs a name, quantity, a price and a target. Enter at least two funds. Targets must add up to exactly 100%."
+    "Every fund needs a name, quantity, a price and a target. Enter at least two funds. Targets must add up to exactly 100%.",
   );
 
   await firstFund.getByLabel("Quantity").fill("1");
   await firstFund.getByLabel("Price (pence)").fill("100");
   await firstFund.getByLabel("Target (%)").fill("60");
   await expect(fundsSection.locator(".total.bad")).toHaveText(
-    "Targets add up to 60% – they need to add up to 100%"
+    "Targets add up to 60% – they need to add up to 100%",
   );
   await expect(actionsSection.locator(".banner.note")).toContainText("Waiting for your details");
   await expect(actionsSection.locator(".banner.note small")).toHaveText(
-    "Enter at least two funds. Targets must add up to exactly 100%."
+    "Enter at least two funds. Targets must add up to exactly 100%.",
   );
 
   /*
@@ -101,7 +101,7 @@ test("UI overall flow", async ({ page }) => {
   await expect(actionsSection.locator(".banner.note")).toHaveCount(1);
   await expect(actionsSection.locator(".banner.note")).toContainText("Waiting for your details");
   await expect(actionsSection.locator(".banner.note small")).toHaveText(
-    "Targets must add up to exactly 100%."
+    "Targets must add up to exactly 100%.",
   );
 
   /*
@@ -121,7 +121,7 @@ test("UI overall flow", async ({ page }) => {
   await expect(numbersSection.locator(".banner.note")).toHaveText("Waiting for the platform total");
   await expect(actionsSection.locator(".banner.note")).toContainText("Results are on hold");
   await expect(actionsSection.locator(".banner.note small")).toHaveText(
-    "Type your platform’s total value in step 3 so the numbers can be checked."
+    "Type your platform’s total value in step 3 so the numbers can be checked.",
   );
 
   /*
@@ -135,28 +135,28 @@ test("UI overall flow", async ({ page }) => {
    */
 
   const platformTotal = numbersSection.getByLabel(
-    "Total portfolio value shown on your platform, in pounds"
+    "Total portfolio value shown on your platform, in pounds",
   );
   await platformTotal.fill("1");
   await expect(numbersSection.locator(".banner.bad")).toContainText("The numbers don’t match");
   await expect(numbersSection.locator(".banner.bad small")).toHaveText(
-    "Your funds and cash come to £16.80, but your platform says £1.00. Otherwise check each price and quantity."
+    "Your funds and cash come to £16.80, but your platform says £1.00. Otherwise check each price and quantity.",
   );
   await expect(actionsSection.locator(".banner.note")).toContainText("Results are on hold");
   await expect(actionsSection.locator(".banner.note small")).toHaveText(
-    "They will appear once the numbers above match."
+    "They will appear once the numbers above match.",
   );
 
   await platformTotal.fill("16");
   await expect(numbersSection.locator(".banner.bad")).toContainText("The numbers don’t match");
   await expect(numbersSection.locator(".banner.bad small")).toHaveText(
-    "Your funds and cash come to £16.80, but your platform says £16.00. Otherwise check each price and quantity."
+    "Your funds and cash come to £16.80, but your platform says £16.00. Otherwise check each price and quantity.",
   );
 
   await platformTotal.fill("16.01");
   await expect(numbersSection.locator(".banner.fine")).toContainText("The numbers match");
   await expect(numbersSection.locator(".banner.fine small")).toHaveText(
-    "Your funds and cash come to £16.80; your platform says £16.01."
+    "Your funds and cash come to £16.80; your platform says £16.01.",
   );
 
   /*
@@ -166,7 +166,7 @@ test("UI overall flow", async ({ page }) => {
   await expect(actionsSection.locator(".banner.act")).toHaveCount(1);
   await expect(actionsSection.locator(".banner.act")).toContainText("Rebalancing is needed");
   await expect(actionsSection.locator(".banner.act small")).toHaveText(
-    "At least one fund has moved outside its acceptable range."
+    "At least one fund has moved outside its acceptable range.",
   );
 
   const actionsTable = actionsSection.locator("table");
@@ -219,8 +219,8 @@ test("UI overall flow", async ({ page }) => {
   const normalisedFootnote = actionFootnoteText?.replace(/\s+/g, " ").trim();
   expect(
     normalisedFootnote?.startsWith(
-      "Total in funds: £6.80 plus £10.00 cash. After these trades about £1.20 of cash would be left over (shares are rounded to whole numbers)."
-    )
+      "Total in funds: £6.80 plus £10.00 cash. After these trades about £1.20 of cash would be left over (shares are rounded to whole numbers).",
+    ),
   ).toBe(true);
 });
 
