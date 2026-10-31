@@ -1,6 +1,6 @@
 /** Manages reactive portfolio state, persistence and derived rebalancing results. */
 import { computed, nextTick, reactive, ref, watch } from "vue";
-import { parseNum } from "../lib/format";
+import { parsePercent, parsePounds } from "../lib/format";
 import { checkTotal, rebalance, toHoldings } from "../lib/rebalance";
 import { clearSaved, defaults, load, newFund, save } from "../lib/storage";
 
@@ -49,23 +49,39 @@ export function usePortfolio() {
   const ready = computed(
     () => !parsed.value.incomplete && targetsOk.value && parsed.value.holdings.length >= 2,
   );
-  const cash = computed(() => Math.max(0, parseNum(state.cash) ?? 0));
+  const cashInvalid = computed(() => state.cash.trim() !== "" && parsePounds(state.cash) === null);
+  const cash = computed(() => Math.max(0, parsePounds(state.cash) ?? 0));
   const total = computed(() => parsed.value.holdings.reduce((a, h) => a + h.quantity * h.price, 0));
+  const platformInvalid = computed(
+    () => state.plat.trim() !== "" && parsePounds(state.plat) === null,
+  );
   const platform = computed(() => {
-    const v = parseNum(state.plat);
+    const v = parsePounds(state.plat);
     return v !== null && v > 0 ? v : null;
   });
+  const relInvalid = computed(() => parsePercent(state.settings.rel) === null);
+  const capInvalid = computed(
+    () => state.settings.cap.trim() !== "" && parsePercent(state.settings.cap) === null,
+  );
+  const settingsInvalid = computed(() => relInvalid.value || capInvalid.value);
   const check = computed(() =>
-    ready.value && platform.value !== null && total.value > 0
+    ready.value && !cashInvalid.value && platform.value !== null && total.value > 0
       ? checkTotal(parsed.value.holdings, cash.value, platform.value)
       : null,
   );
   const plan = computed(() => {
-    if (!ready.value || !check.value?.ok || total.value <= 0) return null;
+    if (
+      !ready.value ||
+      cashInvalid.value ||
+      settingsInvalid.value ||
+      !check.value?.ok ||
+      total.value <= 0
+    )
+      return null;
     const { rel, cap } = state.settings;
     return rebalance(parsed.value.holdings, cash.value, {
-      rel: parseNum(rel) ?? 25,
-      cap: parseNum(cap),
+      rel: parsePercent(rel) ?? 25,
+      cap: parsePercent(cap),
     });
   });
 
@@ -95,8 +111,13 @@ export function usePortfolio() {
     targetsOk,
     ready,
     cash,
+    cashInvalid,
     total,
     platform,
+    platformInvalid,
+    relInvalid,
+    capInvalid,
+    settingsInvalid,
     check,
     plan,
     add,

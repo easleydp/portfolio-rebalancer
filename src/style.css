@@ -40,7 +40,12 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
   line-height: 1.5;
   padding: env(safe-area-inset-top, 0) 0 env(safe-area-inset-bottom, 0);
 }
@@ -106,6 +111,10 @@ input[type="text"] {
   border-radius: 6px;
   background: var(--bg);
   color: var(--ink);
+}
+input[aria-invalid="true"] {
+  border-color: var(--bad);
+  background: var(--badbg);
 }
 input:focus-visible,
 button:focus-visible,

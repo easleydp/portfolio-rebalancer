@@ -5,6 +5,8 @@ import {
   formatPounds,
   formatQuantity,
   parseNum,
+  parsePercent,
+  parsePounds,
   parsePence,
 } from "./format";
 import type { Fund, Settings } from "./rebalance";
@@ -68,7 +70,7 @@ export function toStoredFund(f: Fund): StoredFund {
     name: f.name,
     quantity: parseNum(f.quantity),
     price: pence !== null ? pence / 100 : null,
-    target: parseNum(f.target),
+    target: parsePercent(f.target),
   };
 }
 
@@ -91,11 +93,11 @@ export function fromStoredFund(f: Record<string, unknown>): Fund {
 export function toStoredState(s: State, saved: string): StoredState {
   return {
     funds: s.funds.map(toStoredFund),
-    cash: parseNum(s.cash),
-    plat: parseNum(s.plat),
+    cash: parsePounds(s.cash),
+    plat: parsePounds(s.plat),
     settings: {
-      rel: parseNum(s.settings.rel) ?? 25,
-      cap: parseNum(s.settings.cap),
+      rel: parsePercent(s.settings.rel) ?? 25,
+      cap: parsePercent(s.settings.cap),
     },
     saved,
   };

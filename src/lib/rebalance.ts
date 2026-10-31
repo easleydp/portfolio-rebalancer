@@ -1,5 +1,5 @@
 /** Validates portfolio holdings and calculates checks, acceptable ranges and trades. */
-import { parsePence, parseNum } from "./format";
+import { parsePence, parsePercent, parseQuantity } from "./format";
 
 /*
  * Interfaces `Fund` and `Holding` serve different purposes (UI and data model).
@@ -56,18 +56,12 @@ export function toHoldings(funds: Fund[]) {
   let incomplete = false;
   let targetSum = 0;
   funds.forEach((f, i) => {
-    const quantity = parseNum(f.quantity),
+    const quantity = parseQuantity(f.quantity),
       pence = parsePence(f.price),
-      target = parseNum(f.target);
+      target = parsePercent(f.target);
     targetSum += target ?? 0;
     if (!(f.name || f.quantity || f.price || f.target)) return;
-    if (
-      quantity === null ||
-      !Number.isInteger(quantity) ||
-      pence === null ||
-      target === null ||
-      pence <= 0
-    ) {
+    if (quantity === null || pence === null || target === null || pence <= 0) {
       incomplete = true;
       return;
     }

@@ -1,4 +1,30 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Locator, type Page } from "@playwright/test";
+
+async function expectInvalidField(input: Locator) {
+  await expect(input).toHaveAttribute("aria-invalid", "true");
+  const colours = await input.evaluate((element) => {
+    const expected = document.createElement("div");
+    expected.style.backgroundColor = "var(--badbg)";
+    expected.style.borderColor = "var(--bad)";
+    document.body.append(expected);
+    const expectedStyle = getComputedStyle(expected);
+    const inputStyle = getComputedStyle(element);
+    const result = {
+      background: inputStyle.backgroundColor,
+      border: inputStyle.borderTopColor,
+      expectedBackground: expectedStyle.backgroundColor,
+      expectedBorder: expectedStyle.borderTopColor,
+    };
+    expected.remove();
+    return result;
+  });
+  expect(colours.background).toBe(colours.expectedBackground);
+  expect(colours.border).toBe(colours.expectedBorder);
+}
+
+async function expectValidField(input: Locator) {
+  await expect(input).toHaveAttribute("aria-invalid", "false");
+}
 
 async function assertPageIsClear(page: Page) {
   const fundsSection = page.getByRole("region", { name: "1. Your funds" });
@@ -300,4 +326,64 @@ test("clears all entered data", async ({ page }) => {
   await page.getByRole("button", { name: "Clear everything" }).click();
 
   await assertPageIsClear(page);
+});
+
+test("marks invalid form fields accessibly and visually", async ({ page }) => {
+  await page.addInitScript(() => localStorage.clear());
+  await page.goto("/");
+
+  const firstFund = page.locator(".row").first();
+  const quantity = firstFund.getByLabel("Quantity");
+  await quantity.fill("shares");
+  await expectInvalidField(quantity);
+  await quantity.fill("1.5");
+  await expectInvalidField(quantity);
+  await quantity.fill("2");
+  await expectValidField(quantity);
+
+  const price = firstFund.getByLabel("Price (pence)");
+  await price.fill("12%");
+  await expectInvalidField(price);
+  await price.fill("£12");
+  await price.blur();
+  await expect(price).toHaveValue("1,200.00p");
+  await expectValidField(price);
+  await price.fill("1200p");
+  await price.blur();
+  await expect(price).toHaveValue("1,200.00p");
+  await expectValidField(price);
+
+  const target = firstFund.getByLabel("Target (%)");
+  await target.fill("thirty");
+  await expectInvalidField(target);
+  await target.fill("30%");
+  await expectValidField(target);
+
+  const cash = page.getByLabel("Cash available to invest in pounds");
+  await cash.fill("ten");
+  await expectInvalidField(cash);
+  await cash.fill("£10");
+  await expectValidField(cash);
+
+  const platform = page.getByLabel("Total portfolio value shown on your platform, in pounds");
+  await platform.fill("total");
+  await expectInvalidField(platform);
+  await platform.fill("100");
+  await expectValidField(platform);
+
+  const settings = page.locator("section.noprint").last().locator("details");
+  await settings.locator("summary").click();
+  const allowedDrift = settings.getByLabel("Allowed drift, as a share of each fund’s target");
+  await allowedDrift.fill("wide");
+  await expectInvalidField(allowedDrift);
+  await allowedDrift.fill("25%");
+  await expectValidField(allowedDrift);
+
+  const ceiling = settings.getByLabel("Ceiling in percentage points (optional)");
+  await ceiling.fill("wide");
+  await expectInvalidField(ceiling);
+  await ceiling.fill("5");
+  await expectValidField(ceiling);
+  await ceiling.fill("");
+  await expectValidField(ceiling);
 });

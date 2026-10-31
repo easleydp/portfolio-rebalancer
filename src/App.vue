@@ -11,7 +11,12 @@ const {
   targetsOk,
   ready,
   cash,
+  cashInvalid,
   platform,
+  platformInvalid,
+  relInvalid,
+  capInvalid,
+  settingsInvalid,
   check,
   plan,
   add,
@@ -129,6 +134,7 @@ const confirmReset = () => {
           inputmode="decimal"
           placeholder="0.00"
           aria-label="Cash available to invest in pounds"
+          :aria-invalid="cashInvalid"
           @blur="state.cash = formatPounds(state.cash)"
         />
       </div>
@@ -149,6 +155,7 @@ const confirmReset = () => {
           inputmode="decimal"
           placeholder="0.00"
           aria-label="Total portfolio value shown on your platform, in pounds"
+          :aria-invalid="platformInvalid"
           @blur="state.plat = formatPounds(state.plat)"
         />
       </div>
@@ -163,7 +170,9 @@ const confirmReset = () => {
             ></small
           >
         </div>
-        <div v-else-if="ready" class="banner note">Waiting for the platform total</div>
+        <div v-else-if="ready && !cashInvalid" class="banner note">
+          Waiting for the platform total
+        </div>
       </div>
     </section>
 
@@ -172,6 +181,12 @@ const confirmReset = () => {
       <div v-if="!ready" class="banner note">
         Waiting for your details<small>{{ waiting }}</small>
       </div>
+      <div v-else-if="cashInvalid" class="banner note">
+        Results are on hold<small>Enter a valid cash amount in step 2.</small>
+      </div>
+      <div v-else-if="platformInvalid" class="banner note">
+        Results are on hold<small>Enter a valid platform total in step 3.</small>
+      </div>
       <div v-else-if="!platform" class="banner note">
         Results are on hold<small
           >Type your platform’s total value in step 3 so the numbers can be checked.</small
@@ -179,6 +194,9 @@ const confirmReset = () => {
       </div>
       <div v-else-if="check && !check.ok" class="banner note">
         Results are on hold<small>They will appear once the numbers above match.</small>
+      </div>
+      <div v-else-if="settingsInvalid" class="banner note">
+        Results are on hold<small>Enter valid settings to see results.</small>
       </div>
       <template v-else-if="plan">
         <div v-if="plan.needed" class="banner act">
@@ -262,11 +280,23 @@ const confirmReset = () => {
         <div class="set">
           <div class="suf">
             <label for="rel">Allowed drift, as a share of each fund’s target</label><span>%</span
-            ><input id="rel" v-model="state.settings.rel" type="text" inputmode="decimal" />
+            ><input
+              id="rel"
+              v-model="state.settings.rel"
+              type="text"
+              inputmode="decimal"
+              :aria-invalid="relInvalid"
+            />
           </div>
           <div class="suf">
             <label for="cap">Ceiling in percentage points (optional)</label><span>%</span
-            ><input id="cap" v-model="state.settings.cap" type="text" inputmode="decimal" />
+            ><input
+              id="cap"
+              v-model="state.settings.cap"
+              type="text"
+              inputmode="decimal"
+              :aria-invalid="capInvalid"
+            />
           </div>
         </div>
         <p class="hint">

@@ -4,8 +4,11 @@ import {
   formatPercent,
   formatPounds,
   formatQuantity,
+  parsePercent,
+  parsePounds,
   parsePence,
   parseNum,
+  parseQuantity,
 } from "./format";
 
 describe("parseNum / formatPence", () => {
@@ -41,10 +44,36 @@ describe("parsePence", () => {
     expect(parsePence("1206")).toBe(1206);
     expect(parsePence("1,206.00p")).toBe(1206);
   });
+  it("rejects values that are not formatted as pounds or pence", () => {
+    expect(parsePence("12%")).toBeNull();
+    expect(parsePence("£12p")).toBeNull();
+    expect(parsePence("£12")).toBe(1200);
+    expect(parsePence("1200p")).toBe(1200);
+  });
   it("returns null for invalid input", () => {
     expect(parsePence("")).toBeNull();
     expect(parsePence("abc")).toBeNull();
     expect(parsePence("-5")).toBeNull();
+  });
+});
+
+describe("field-specific numeric parsing", () => {
+  it("accepts only whole numeric quantities", () => {
+    expect(parseQuantity("1,000")).toBe(1000);
+    expect(parseQuantity("1.5")).toBeNull();
+    expect(parseQuantity("1p")).toBeNull();
+  });
+
+  it("accepts percentages with an optional trailing percent sign", () => {
+    expect(parsePercent("30")).toBe(30);
+    expect(parsePercent("30%")).toBe(30);
+    expect(parsePercent("£30")).toBeNull();
+  });
+
+  it("accepts pounds amounts with an optional leading pound sign", () => {
+    expect(parsePounds("12.50")).toBe(12.5);
+    expect(parsePounds("£12.50")).toBe(12.5);
+    expect(parsePounds("12%")).toBeNull();
   });
 });
 

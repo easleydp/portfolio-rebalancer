@@ -6,7 +6,8 @@ import {
   formatQuantity,
   gbp,
   parsePence,
-  parseNum,
+  parsePercent,
+  parseQuantity,
 } from "../lib/format";
 import type { Fund } from "../lib/rebalance";
 
@@ -14,10 +15,18 @@ const props = defineProps<{ fund: Fund; canRemove: boolean }>();
 defineEmits<{ remove: [] }>();
 
 const worth = computed(() => {
-  const q = parseNum(props.fund.quantity),
+  const q = parseQuantity(props.fund.quantity),
     p = parsePence(props.fund.price);
   return q !== null && p !== null ? gbp((q * p) / 100) : "";
 });
+const rowStarted = computed(() =>
+  Boolean(props.fund.name || props.fund.quantity || props.fund.price || props.fund.target),
+);
+const quantityInvalid = computed(
+  () => rowStarted.value && parseQuantity(props.fund.quantity) === null,
+);
+const priceInvalid = computed(() => rowStarted.value && parsePence(props.fund.price) === null);
+const targetInvalid = computed(() => rowStarted.value && parsePercent(props.fund.target) === null);
 const id = (s: string) => `${s}-${props.fund.id}`;
 </script>
 
@@ -34,6 +43,7 @@ const id = (s: string) => `${s}-${props.fund.id}`;
         v-model="fund.quantity"
         type="text"
         inputmode="numeric"
+        :aria-invalid="quantityInvalid"
         @blur="fund.quantity = formatQuantity(fund.quantity)"
       />
     </div>
@@ -44,6 +54,7 @@ const id = (s: string) => `${s}-${props.fund.id}`;
         v-model="fund.price"
         type="text"
         inputmode="decimal"
+        :aria-invalid="priceInvalid"
         @blur="fund.price = formatPence(fund.price)"
       />
     </div>
@@ -54,6 +65,7 @@ const id = (s: string) => `${s}-${props.fund.id}`;
         v-model="fund.target"
         type="text"
         inputmode="decimal"
+        :aria-invalid="targetInvalid"
         @blur="fund.target = formatPercent(fund.target)"
       />
     </div>
