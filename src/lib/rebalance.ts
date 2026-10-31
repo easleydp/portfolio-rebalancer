@@ -1,6 +1,13 @@
 /** Validates portfolio holdings and calculates checks, acceptable ranges and trades. */
 import { parsePence, parseNum } from "./format";
 
+/*
+ * Interfaces `Fund` and `Holding` serve different purposes (UI and data model).
+ * `toHoldings` converts between them: it parses and validates the form values, converts
+ * pence to pounds, and skips empty or incomplete rows. Keeping both interfaces makes the
+ * boundary between editable UI input and calculation-ready data explicit.
+ */
+
 /** A fund row exactly as typed. Price is in pence. */
 export interface Fund {
   id: string;
@@ -9,11 +16,6 @@ export interface Fund {
   price: string;
   target: string;
 }
-export interface Settings {
-  rel: string;
-  cap: string;
-  whole: boolean;
-}
 /** A validated holding. Price is in pounds. */
 export interface Holding {
   name: string;
@@ -21,6 +23,12 @@ export interface Holding {
   price: number;
   target: number;
 }
+export interface Settings {
+  rel: string;
+  cap: string;
+  whole: boolean;
+}
+/** Calculated position and suggested trade for one fund in the results table. */
 export interface Row extends Holding {
   value: number;
   weight: number;
@@ -31,6 +39,7 @@ export interface Row extends Holding {
   qty: number;
   cost: number;
 }
+/** Overall rebalance results displayed in the "What to do" section. */
 export interface Plan {
   rows: Row[];
   needed: boolean;
@@ -116,7 +125,7 @@ export function checkTotal(holdings: Holding[], cash: number, platform: number):
 export function rebalance(
   holdings: Holding[],
   cash: number,
-  o: { rel: number; cap: number | null; whole: boolean },
+  o: { rel: number; cap: number | null; whole: boolean }
 ): Plan {
   const total = holdings.reduce((a, h) => a + h.quantity * h.price, 0);
   if (!holdings.length || total <= 0) {
