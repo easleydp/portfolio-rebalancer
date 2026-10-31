@@ -29,22 +29,42 @@ const id = (s: string) => `${s}-${props.fund.id}`;
     </div>
     <div>
       <label :for="id('q')">Quantity</label>
-      <input :id="id('q')" v-model="fund.quantity" type="text" inputmode="decimal"
-        @blur="fund.quantity = formatQuantity(fund.quantity)" />
+      <input
+        :id="id('q')"
+        v-model="fund.quantity"
+        type="text"
+        inputmode="numeric"
+        @blur="fund.quantity = formatQuantity(fund.quantity)"
+      />
     </div>
     <div>
       <label :for="id('p')">Price (pence)</label>
-      <input :id="id('p')" v-model="fund.price" type="text" inputmode="decimal"
-        @blur="fund.price = formatPence(fund.price)" />
+      <input
+        :id="id('p')"
+        v-model="fund.price"
+        type="text"
+        inputmode="decimal"
+        @blur="fund.price = formatPence(fund.price)"
+      />
     </div>
     <div class="suf">
       <label :for="id('t')">Target (%)</label><span>%</span>
-      <input :id="id('t')" v-model="fund.target" type="text" inputmode="decimal"
-        @blur="fund.target = formatPercent(fund.target)" />
+      <input
+        :id="id('t')"
+        v-model="fund.target"
+        type="text"
+        inputmode="decimal"
+        @blur="fund.target = formatPercent(fund.target)"
+      />
     </div>
     <div>
-      <button v-if="canRemove" type="button" class="x" :aria-label="`Remove ${fund.name.trim() || 'this fund'}`"
-        @click="$emit('remove')">
+      <button
+        v-if="canRemove"
+        type="button"
+        class="x"
+        :aria-label="`Remove ${fund.name.trim() || 'this fund'}`"
+        @click="$emit('remove')"
+      >
         Remove
       </button>
     </div>

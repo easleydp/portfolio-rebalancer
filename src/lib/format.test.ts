@@ -58,10 +58,12 @@ describe("formatQuantity", () => {
     expect(formatQuantity("100,00")).toBe("10,000");
     expect(formatQuantity("1,00,000")).toBe("100,000");
   });
-  it("preserves fractional shares up to 10 decimal places and strips trailing zeros", () => {
-    expect(formatQuantity("1234.5")).toBe("1,234.5");
-    expect(formatQuantity("1000.25")).toBe("1,000.25");
-    expect(formatQuantity("1.1234567890")).toBe("1.123456789");
+  it("leaves fractional quantities unchanged so they are not silently rounded", () => {
+    expect(formatQuantity("1234.5")).toBe("1234.5");
+    // This matters because formatting runs when the quantity field loses focus.
+    // Rounding there could silently change what the user entered. Instead, the
+    // value stays visible, and the portfolio validation rejects it as incomplete
+    // until the user enters a whole-share quantity.
   });
   it("handles small numbers without adding spurious separators", () => {
     expect(formatQuantity("0")).toBe("0");

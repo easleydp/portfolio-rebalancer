@@ -26,7 +26,6 @@ export interface Holding {
 export interface Settings {
   rel: string;
   cap: string;
-  whole: boolean;
 }
 /** Calculated position and suggested trade for one fund in the results table. */
 export interface Row extends Holding {
@@ -62,7 +61,13 @@ export function toHoldings(funds: Fund[]) {
       target = parseNum(f.target);
     targetSum += target ?? 0;
     if (!(f.name || f.quantity || f.price || f.target)) return;
-    if (quantity === null || pence === null || target === null || pence <= 0) {
+    if (
+      quantity === null ||
+      !Number.isInteger(quantity) ||
+      pence === null ||
+      target === null ||
+      pence <= 0
+    ) {
       incomplete = true;
       return;
     }
@@ -125,7 +130,7 @@ export function checkTotal(holdings: Holding[], cash: number, platform: number):
 export function rebalance(
   holdings: Holding[],
   cash: number,
-  o: { rel: number; cap: number | null; whole: boolean }
+  o: { rel: number; cap: number | null },
 ): Plan {
   const total = holdings.reduce((a, h) => a + h.quantity * h.price, 0);
   if (!holdings.length || total <= 0) {
@@ -137,12 +142,8 @@ export function rebalance(
     const weight = (value / total) * 100;
     const [lo, hi] = acceptableRange(h.target, o.rel, o.cap);
     let q = ((h.target / 100) * newTotal - value) / h.price;
-    // Whole shares: buys round down (never overspend), sells round to nearest (never more than held).
-    if (o.whole) {
-      q = q > 0 ? Math.floor(q + 1e-9) : -Math.min(h.quantity, Math.round(-q));
-    } else {
-      q = q > 0 ? Math.round(q * 1000) / 1000 : -Math.min(h.quantity, Math.round(-q * 1000) / 1000);
-    }
+    // Buys round down (never overspend); sells round to nearest and cannot exceed whole shares held.
+    q = q > 0 ? Math.floor(q + 1e-9) : -Math.min(Math.floor(h.quantity), Math.round(-q));
     return {
       ...h,
       value,

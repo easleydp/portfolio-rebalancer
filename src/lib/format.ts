@@ -31,16 +31,11 @@ export function formatPence(input: string): string {
       }) + "p";
 }
 
-/** Tidy a quantity on blur: "10000" → "10,000", "100,00" → "10,000". Invalid input is returned untouched. */
+/** Tidy a whole-share quantity on blur. Invalid or fractional input is returned untouched. */
 export function formatQuantity(input: string): string {
   const v = parseNum(input);
-  if (v === null) return input;
-  // Preserve up to 10 decimal places (fractional shares), strip trailing zeros after the dot
-  const formatted = v.toLocaleString("en-GB", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 10,
-  });
-  return formatted;
+  if (v === null || !Number.isInteger(v)) return input;
+  return v.toLocaleString("en-GB");
 }
 
 /** Tidy a pounds amount on blur: "1234.5" → "1,234.50". Invalid input is returned untouched. */

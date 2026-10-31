@@ -7,7 +7,7 @@ const h = (name: string, quantity: number, price: number, target: number) => ({
   price,
   target,
 });
-const opts = { rel: 25, cap: 5 as number | null, whole: true };
+const opts = { rel: 25, cap: 5 as number | null };
 
 describe("acceptableRange", () => {
   it("is relative for small targets and capped for large ones", () => {
@@ -41,6 +41,9 @@ describe("toHoldings", () => {
   it("flags partly filled rows", () => {
     expect(toHoldings([f("A", "10", "", "50")]).incomplete).toBe(true);
   });
+  it("rejects fractional share quantities", () => {
+    expect(toHoldings([f("A", "1.5", "100", "50")]).incomplete).toBe(true);
+  });
 });
 
 describe("rebalance", () => {
@@ -56,6 +59,11 @@ describe("rebalance", () => {
     const p = rebalance([h("A", 70, 1, 50), h("B", 30, 1, 50)], 0, opts);
     expect(p.needed).toBe(true);
     expect(p.rows.map((r) => r.qty)).toEqual([-20, 20]);
+  });
+  it("always rounds trades to whole shares", () => {
+    const p = rebalance([h("A", 7, 1, 50), h("B", 3, 1, 50)], 0, opts);
+    expect(p.rows.map((r) => r.qty)).toEqual([-2, 2]);
+    expect(p.rows.every((r) => Number.isInteger(r.qty))).toBe(true);
   });
   it("spreads spare cash towards targets and never overspends it on buys", () => {
     const p = rebalance([h("A", 50, 3, 50), h("B", 50, 3, 50)], 100, opts);

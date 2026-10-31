@@ -62,11 +62,10 @@ export function usePortfolio() {
   );
   const plan = computed(() => {
     if (!ready.value || !check.value?.ok || total.value <= 0) return null;
-    const { rel, cap, whole } = state.settings;
+    const { rel, cap } = state.settings;
     return rebalance(parsed.value.holdings, cash.value, {
       rel: parseNum(rel) ?? 25,
       cap: parseNum(cap),
-      whole,
     });
   });
 

@@ -28,7 +28,6 @@ export interface StoredFund {
 export interface StoredSettings {
   rel: number;
   cap: number | null;
-  whole: boolean;
 }
 
 export interface StoredState {
@@ -54,7 +53,7 @@ export const defaults = (): State => ({
   funds: [newFund(), newFund(), newFund()],
   cash: "",
   plat: "",
-  settings: { rel: "25", cap: "5", whole: true },
+  settings: { rel: "25", cap: "5" },
   saved: "",
 });
 
@@ -97,7 +96,6 @@ export function toStoredState(s: State, saved: string): StoredState {
     settings: {
       rel: parseNum(s.settings.rel) ?? 25,
       cap: parseNum(s.settings.cap),
-      whole: s.settings.whole !== false,
     },
     saved,
   };
@@ -123,7 +121,6 @@ export function load(): State {
       settings: {
         rel: relNum !== null ? String(relNum) : "25",
         cap: capNum !== null ? String(capNum) : "",
-        whole: s.whole !== false,
       },
       saved: str(p.saved),
     };

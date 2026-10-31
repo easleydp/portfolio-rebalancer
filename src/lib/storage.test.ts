@@ -133,7 +133,7 @@ describe("state serialization & localStorage persistence", () => {
       ],
       cash: "1,000.00",
       plat: "44,000.00",
-      settings: { rel: "25", cap: "5", whole: true },
+      settings: { rel: "25", cap: "5" },
       saved: "",
     };
 
@@ -148,7 +148,6 @@ describe("state serialization & localStorage persistence", () => {
       settings: {
         rel: 25,
         cap: 5,
-        whole: true,
       },
       saved: "2026-10-23T12:00:00.000Z",
     });
@@ -164,7 +163,7 @@ describe("state serialization & localStorage persistence", () => {
       ],
       cash: "1,000.00",
       plat: "44,000.00",
-      settings: { rel: "25", cap: "5", whole: true },
+      settings: { rel: "25", cap: "5" },
       saved: "",
     };
 
@@ -202,7 +201,7 @@ describe("state serialization & localStorage persistence", () => {
     expect(loaded.plat).toBe("");
     expect(loaded.funds.length).toBe(3);
     expect(loaded.funds[0].name).toBe("");
-    expect(loaded.settings).toEqual({ rel: "25", cap: "5", whole: true });
+    expect(loaded.settings).toEqual({ rel: "25", cap: "5" });
   });
 
   it("clears saved state from localStorage", () => {
