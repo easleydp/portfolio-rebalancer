@@ -41,6 +41,13 @@ describe("toHoldings", () => {
   it("flags partly filled rows", () => {
     expect(toHoldings([f("A", "10", "", "50")]).incomplete).toBe(true);
   });
+  it("requires a name when the other fund fields are filled", () => {
+    expect(toHoldings([f("", "10", "100", "100")])).toMatchObject({
+      holdings: [],
+      incomplete: true,
+    });
+    expect(toHoldings([f(" ", "10", "100", "100")]).incomplete).toBe(true);
+  });
   it("rejects fractional share quantities", () => {
     expect(toHoldings([f("A", "1.5", "100", "50")]).incomplete).toBe(true);
   });

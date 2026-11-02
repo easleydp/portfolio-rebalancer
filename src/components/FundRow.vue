@@ -22,6 +22,11 @@ const worth = computed(() => {
 const rowStarted = computed(() =>
   Boolean(props.fund.name || props.fund.quantity || props.fund.price || props.fund.target),
 );
+const nameInvalid = computed(
+  () =>
+    Boolean(props.fund.quantity || props.fund.price || props.fund.target) &&
+    !props.fund.name.trim(),
+);
 const quantityInvalid = computed(
   () => rowStarted.value && parseQuantity(props.fund.quantity) === null,
 );
@@ -34,7 +39,13 @@ const id = (s: string) => `${s}-${props.fund.id}`;
   <div class="row">
     <div>
       <label :for="id('n')">Fund name or ticker</label>
-      <input :id="id('n')" v-model="fund.name" type="text" placeholder="e.g. VWRL" />
+      <input
+        :id="id('n')"
+        v-model="fund.name"
+        type="text"
+        placeholder="e.g. VWRL"
+        :aria-invalid="nameInvalid"
+      />
     </div>
     <div>
       <label :for="id('q')">Quantity</label>

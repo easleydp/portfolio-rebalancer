@@ -59,18 +59,18 @@ export function toHoldings(funds: Fund[]) {
   const holdings: Holding[] = [];
   let incomplete = false;
   let targetSum = 0;
-  funds.forEach((f, i) => {
+  funds.forEach((f) => {
     const quantity = parseQuantity(f.quantity),
       pence = parsePence(f.price),
       target = parsePercent(f.target);
     targetSum += target ?? 0;
     if (!(f.name || f.quantity || f.price || f.target)) return;
-    if (quantity === null || pence === null || target === null || pence <= 0) {
+    if (!f.name.trim() || quantity === null || pence === null || target === null || pence <= 0) {
       incomplete = true;
       return;
     }
     holdings.push({
-      name: f.name.trim() || `Fund ${i + 1}`,
+      name: f.name.trim(),
       quantity,
       price: pence / 100,
       target,

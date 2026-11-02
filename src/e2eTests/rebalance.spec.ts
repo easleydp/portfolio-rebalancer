@@ -384,6 +384,8 @@ test("marks invalid form fields accessibly and visually", async ({ page }) => {
   await page.goto("/");
 
   const firstFund = page.locator(".row").first();
+  const name = firstFund.getByLabel("Fund name or ticker");
+  await expectValidField(name);
   const quantity = firstFund.getByLabel("Quantity");
   await quantity.fill("shares");
   await expectInvalidField(quantity);
@@ -391,6 +393,9 @@ test("marks invalid form fields accessibly and visually", async ({ page }) => {
   await expectInvalidField(quantity);
   await quantity.fill("2");
   await expectValidField(quantity);
+  await expectInvalidField(name);
+  await name.fill("ONE");
+  await expectValidField(name);
 
   const price = firstFund.getByLabel("Price (pence)");
   await price.fill("12%");
