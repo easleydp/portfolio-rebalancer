@@ -209,10 +209,25 @@ const confirmReset = () => {
             No rebalancing needed<small>Every fund is within its acceptable range.</small>
           </div>
           <div v-if="cash > 0" class="banner note">
-            You have {{ gbp(cash) }} in cash<small
-              >If you want to invest it, the fund furthest below target is
-              {{ plan.worst.name }}.</small
-            >
+            You have {{ gbp(cash) }} in cash
+            <small v-if="plan.cashAdvice?.kind === 'single'">
+              If you want to invest it, the fund furthest below target is
+              {{ plan.cashAdvice.name }}.
+            </small>
+            <small v-else-if="plan.cashAdvice?.kind === 'spread'">
+              To spread it towards your targets:
+              <template v-if="plan.cashAdvice.purchases.length">
+                <br />
+                <span v-for="purchase in plan.cashAdvice.purchases" :key="purchase.name">
+                  Buy {{ purchase.qty }} share{{ purchase.qty === 1 ? "" : "s" }} of
+                  {{ purchase.name }} (about {{ gbp(purchase.cost) }}).<br />
+                </span>
+              </template>
+              <template v-else>
+                There isn’t enough cash to buy a whole share of any fund.<br />
+              </template>
+              About {{ gbp(plan.cashAdvice.left) }} of cash would be left over.
+            </small>
           </div>
         </template>
         <div class="scroll">

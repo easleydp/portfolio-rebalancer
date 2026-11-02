@@ -45,11 +45,15 @@ export interface Plan {
   total: number;
   cash: number;
   left: number;
-  worst: Row;
+  cashAdvice: CashAdvice | null;
 }
+export type CashAdvice =
+  | { kind: "single"; name: string }
+  | { kind: "spread"; purchases: { name: string; qty: number; cost: number }[]; left: number };
 export type Check = { ok: true; mine: number } | { ok: false; mine: number; hint: string };
 
 export const TOLERANCE = 0.05;
+const EPSILON = 1e-9;
 
 export function toHoldings(funds: Fund[]) {
   const holdings: Holding[] = [];
@@ -151,13 +155,55 @@ export function rebalance(
     };
   });
   const left = cash - rows.reduce((a, r) => a + r.cost, 0);
-  const worst = rows.reduce((a, b) => (b.drift < a.drift ? b : a));
+  const needed = rows.some((r) => r.off);
+  const cashAdvice = !needed && cash > 0 ? adviseSpareCash(rows, total, cash) : null;
   return {
     rows,
-    needed: rows.some((r) => r.off),
+    needed,
     total,
     cash,
     left,
-    worst,
+    cashAdvice,
   };
+}
+
+function adviseSpareCash(rows: Row[], total: number, cash: number): CashAdvice {
+  const shortfalls = rows.map((row) => row.target - row.weight);
+  const greatestShortfall = Math.max(...shortfalls);
+  const candidateIndex = shortfalls.findIndex(
+    (shortfall) => shortfall > EPSILON && greatestShortfall - shortfall <= EPSILON,
+  );
+  const tied = shortfalls.some(
+    (shortfall, index) => index !== candidateIndex && greatestShortfall - shortfall <= EPSILON,
+  );
+
+  if (candidateIndex !== -1 && !tied) {
+    const candidate = rows[candidateIndex];
+    const targetValue = (candidate.target / 100) * (total + cash);
+    const amountToTarget = Math.max(0, targetValue - candidate.value);
+    const quantity = Math.floor(Math.min(cash, amountToTarget) / candidate.price + EPSILON);
+    const cost = quantity * candidate.price;
+    const remainsWithinRange = rows.every((row, index) => {
+      const value = row.value + (index === candidateIndex ? cost : 0);
+      const weight = (value / (total + cash)) * 100;
+      return weight >= row.lo - EPSILON && weight <= row.hi + EPSILON;
+    });
+
+    if (quantity > 0 && cost <= cash + EPSILON && remainsWithinRange) {
+      return { kind: "single", name: candidate.name };
+    }
+  }
+
+  const newTotal = total + cash;
+  const deficits = rows.map((row) => Math.max(0, (row.target / 100) * newTotal - row.value));
+  const totalDeficit = deficits.reduce((sum, deficit) => sum + deficit, 0);
+  const purchases = rows.flatMap((row, index) => {
+    const allocation =
+      totalDeficit > EPSILON ? (cash * deficits[index]) / totalDeficit : (cash * row.target) / 100;
+    const quantity = Math.floor(allocation / row.price + EPSILON);
+    return quantity > 0 ? [{ name: row.name, qty: quantity, cost: quantity * row.price }] : [];
+  });
+  const spent = purchases.reduce((sum, purchase) => sum + purchase.cost, 0);
+
+  return { kind: "spread", purchases, left: Math.max(0, cash - spent) };
 }

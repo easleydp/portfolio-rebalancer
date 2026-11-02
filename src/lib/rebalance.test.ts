@@ -70,6 +70,37 @@ describe("rebalance", () => {
     expect(p.left).toBeGreaterThanOrEqual(0);
     expect(p.rows.every((r) => r.qty >= 0)).toBe(true);
   });
+  it("keeps the simple recommendation for one clear shortfall that can absorb the cash", () => {
+    const p = rebalance([h("A", 49, 1, 50), h("B", 51, 1, 50)], 1, opts);
+    expect(p.needed).toBe(false);
+    expect(p.cashAdvice).toEqual({ kind: "single", name: "A" });
+  });
+  it("splits cash when funds have tied shortfalls", () => {
+    const p = rebalance([h("A", 39, 1, 40), h("B", 39, 1, 40), h("C", 22, 1, 20)], 1, opts);
+    expect(p.cashAdvice).toEqual({ kind: "spread", purchases: [], left: 1 });
+  });
+  it("splits a large cash deposit across funds at target", () => {
+    const p = rebalance([h("A", 50, 1, 50), h("B", 50, 1, 50)], 100, opts);
+    expect(p.cashAdvice).toEqual({
+      kind: "spread",
+      purchases: [
+        { name: "A", qty: 50, cost: 50 },
+        { name: "B", qty: 50, cost: 50 },
+      ],
+      left: 0,
+    });
+  });
+  it("spreads cash when investing it in one fund would push another out of range", () => {
+    const p = rebalance([h("A", 49, 1, 50), h("B", 51, 1, 50)], 20_000, opts);
+    expect(p.cashAdvice).toEqual({
+      kind: "spread",
+      purchases: [
+        { name: "A", qty: 10_001, cost: 10_001 },
+        { name: "B", qty: 9_999, cost: 9_999 },
+      ],
+      left: 0,
+    });
+  });
   it("never sells more than is held", () => {
     const p = rebalance([h("A", 1, 100, 1), h("B", 1, 1, 99)], 0, opts);
     expect(p.rows[0].qty).toBeGreaterThanOrEqual(-1);

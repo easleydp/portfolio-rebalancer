@@ -40,4 +40,16 @@ npm run build       # type-check + production build into dist/
 
 **Deploy:** push to GitHub, then Settings → Pages → Source: _GitHub Actions_. The workflow in `.github/workflows` tests, builds and publishes on every push to `master`.
 
-**Rule:** a fund is flagged when it is off target by more than _Allowed drift_ % of its target (default 25), capped at _Ceiling_ percentage points (default 5, optional). Maths lives in `src/lib/rebalance.ts`.
+## Rules
+
+### Allowed drift
+
+A fund is flagged when it is off target by more than _Allowed drift_ % of its target (default 25), capped at _Ceiling_ percentage points (default 5, optional). Maths lives in `src/lib/rebalance.ts`.
+
+### Spare cash
+
+When no rebalancing is needed but cash is available, the app uses this decision rule:
+
+1. It looks for one fund with a uniquely largest shortfall from its target. A tie, or no fund below target, means there is no single clear candidate.
+2. It recommends that fund only if whole-share purchases using the cash would not take it above target or push any fund outside its acceptable range.
+3. Otherwise, it spreads the cash across funds according to their positive shortfalls from target after the cash is added. Purchases are rounded down to whole shares, so any unspent cash is shown as left over.

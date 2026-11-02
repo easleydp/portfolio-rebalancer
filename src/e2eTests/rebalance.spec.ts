@@ -328,6 +328,57 @@ test("clears all entered data", async ({ page }) => {
   await assertPageIsClear(page);
 });
 
+test("suggests spreading a large cash balance across funds", async ({ page }) => {
+  await page.addInitScript(() => localStorage.clear());
+  await page.goto("/");
+
+  const funds = page.locator(".row");
+  for (const [index, name] of ["ONE", "TWO"].entries()) {
+    const fund = funds.nth(index);
+    await fund.getByLabel("Fund name or ticker").fill(name);
+    await fund.getByLabel("Quantity").fill("50");
+    await fund.getByLabel("Price (pence)").fill("100");
+    await fund.getByLabel("Target (%)").fill("50");
+  }
+  await page.getByLabel("Cash available to invest in pounds").fill("100");
+  await page.getByLabel("Total portfolio value shown on your platform, in pounds").fill("200");
+
+  const actionsSection = page.getByRole("region", { name: "4. What to do" });
+  await expect(actionsSection.locator(".banner.fine")).toContainText("No rebalancing needed");
+  const cashAdvice = actionsSection.locator(".banner.note");
+  await expect(cashAdvice).toContainText("To spread it towards your targets");
+  await expect(cashAdvice).toContainText("Buy 50 shares of ONE (about £50.00).");
+  await expect(cashAdvice).toContainText("Buy 50 shares of TWO (about £50.00).");
+  await expect(cashAdvice).toContainText("About £0.00 of cash would be left over.");
+});
+
+test("keeps the simple cash suggestion for one clear shortfall", async ({ page }) => {
+  await page.addInitScript(() => localStorage.clear());
+  await page.goto("/");
+
+  const funds = page.locator(".row");
+  const firstFund = funds.nth(0);
+  await firstFund.getByLabel("Fund name or ticker").fill("ONE");
+  await firstFund.getByLabel("Quantity").fill("49");
+  await firstFund.getByLabel("Price (pence)").fill("100");
+  await firstFund.getByLabel("Target (%)").fill("50");
+
+  const secondFund = funds.nth(1);
+  await secondFund.getByLabel("Fund name or ticker").fill("TWO");
+  await secondFund.getByLabel("Quantity").fill("51");
+  await secondFund.getByLabel("Price (pence)").fill("100");
+  await secondFund.getByLabel("Target (%)").fill("50");
+
+  await page.getByLabel("Cash available to invest in pounds").fill("1");
+  await page.getByLabel("Total portfolio value shown on your platform, in pounds").fill("101");
+
+  const actionsSection = page.getByRole("region", { name: "4. What to do" });
+  await expect(actionsSection.locator(".banner.fine")).toContainText("No rebalancing needed");
+  await expect(actionsSection.locator(".banner.note")).toContainText(
+    "If you want to invest it, the fund furthest below target is ONE.",
+  );
+});
+
 test("marks invalid form fields accessibly and visually", async ({ page }) => {
   await page.addInitScript(() => localStorage.clear());
   await page.goto("/");
