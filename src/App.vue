@@ -12,6 +12,8 @@ const {
   ready,
   cash,
   cashInvalid,
+  withdrawal,
+  withdrawalInvalid,
   platform,
   platformInvalid,
   relInvalid,
@@ -71,10 +73,14 @@ const confirmReset = () => {
             point out the likely mistake.
           </li>
           <li>
+            <b>Choose whether to take out cash.</b> Leave this section closed if you don’t want to
+            withdraw any money.
+          </li>
+          <li>
             <b>Read the result.</b> Each fund gets an acceptable range around its target. If any
-            fund has moved outside its range, you’ll see what to buy or sell to get back on track.
-            Otherwise, you’re told nothing needs doing. You can adjust how wide the ranges are in
-            Settings.
+            fund has moved outside its range, or you need to sell shares to raise cash, you’ll see
+            what to buy or sell. Otherwise, you’re told nothing needs doing. You can adjust how wide
+            the ranges are in Settings.
           </li>
         </ol>
         <p class="hint">
@@ -176,13 +182,42 @@ const confirmReset = () => {
       </div>
     </section>
 
+    <section class="noprint" aria-labelledby="h-withdrawal">
+      <details>
+        <summary>
+          <h2 id="h-withdrawal">4. Cash to take out</h2>
+          <span class="opt">(use this section if you want to take some cash out)</span>
+        </summary>
+        <p class="hint">
+          Enter how much cash you’d like to take out. We’ll show whether you need to sell any shares
+          to raise it. If any funds are outside their target ranges, we may suggest other trades
+          too.
+        </p>
+        <div class="pre cash">
+          <span>£</span>
+          <input
+            v-model="state.withdrawal"
+            type="text"
+            inputmode="decimal"
+            placeholder="0.00"
+            aria-label="Cash you would like to take out, in pounds"
+            :aria-invalid="withdrawalInvalid"
+            @blur="state.withdrawal = formatPounds(state.withdrawal)"
+          />
+        </div>
+      </details>
+    </section>
+
     <section aria-labelledby="h-res">
-      <h2 id="h-res">4. What to do</h2>
+      <h2 id="h-res">5. What to do</h2>
       <div v-if="!ready" class="banner note">
         Waiting for your details<small>{{ waiting }}</small>
       </div>
       <div v-else-if="cashInvalid" class="banner note">
         Results are on hold<small>Enter a valid cash amount in step 2.</small>
+      </div>
+      <div v-else-if="withdrawalInvalid" class="banner note">
+        Results are on hold<small>Enter a valid amount to take out in step 4.</small>
       </div>
       <div v-else-if="platformInvalid" class="banner note">
         Results are on hold<small>Enter a valid platform total in step 3.</small>
@@ -200,16 +235,26 @@ const confirmReset = () => {
       </div>
       <template v-else-if="plan">
         <div v-if="plan.needed" class="banner act">
-          Rebalancing is needed<small
-            >At least one fund has moved outside its acceptable range.</small
-          >
+          Rebalancing is needed
+          <small v-if="withdrawal > cash">
+            You’ll need to sell shares to raise the cash you want to take out.
+          </small>
+          <small v-else>At least one fund has moved outside its acceptable range.</small>
         </div>
         <template v-else>
           <div class="banner fine">
-            No rebalancing needed<small>Every fund is within its acceptable range.</small>
+            No rebalancing needed
+            <small v-if="withdrawal > 0">
+              Every fund is within its acceptable range, and you already have enough cash to take
+              out {{ gbp(withdrawal) }}.
+            </small>
+            <small v-else>Every fund is within its acceptable range.</small>
           </div>
-          <div v-if="cash > 0" class="banner note">
-            You have {{ gbp(cash) }} in cash
+          <div v-if="cash > withdrawal" class="banner note">
+            <template v-if="withdrawal > 0">
+              After taking out {{ gbp(withdrawal) }}, you have {{ gbp(cash - withdrawal) }} in cash
+            </template>
+            <template v-else>You have {{ gbp(cash) }} in cash</template>
             <small v-if="plan.cashAdvice?.kind === 'single'">
               If you want to invest it, the fund furthest below target is
               {{ plan.cashAdvice.name }}.
@@ -273,11 +318,17 @@ const confirmReset = () => {
           Total in funds: {{ gbp(plan.total)
           }}<template v-if="cash > 0"> plus {{ gbp(cash) }} cash</template>.
           <template v-if="plan.needed">
+            <template v-if="withdrawal > 0"> After taking out {{ gbp(withdrawal) }}, </template>
             After these trades about {{ gbp(Math.max(0, plan.left)) }} of cash would be left over
             (shares are rounded to whole numbers).
             <template v-if="plan.left < -0.005">
-              The sales may not quite cover the purchases, so you may want to buy one share
-              fewer.</template
+              <template v-if="withdrawal > cash">
+                The sales may not quite cover the withdrawal and purchases, so you may need to sell
+                an extra share.</template
+              ><template v-else>
+                The sales may not quite cover the purchases, so you may want to buy one share
+                fewer.</template
+              ></template
             >
             These figures don’t include dealing fees, stamp duty or other charges, so allow a little
             extra cash for them.</template

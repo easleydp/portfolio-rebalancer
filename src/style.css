@@ -64,6 +64,13 @@ h2 {
   font-size: 1.35rem;
   margin: 0 0 4px;
 }
+summary > h2 {
+  display: inline;
+  margin: 0;
+}
+summary > .opt {
+  margin-left: 0.25em;
+}
 .lead {
   color: var(--mute);
   margin: 0 0 20px;
