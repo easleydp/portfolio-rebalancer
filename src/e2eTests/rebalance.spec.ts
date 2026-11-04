@@ -110,6 +110,59 @@ test("expands the withdrawal section and hides its marker for a saved withdrawal
     .toBe("none");
 });
 
+test("normalises zero optional cash amounts to blank before and after reload", async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      "portfolio-rebalancer-v2",
+      JSON.stringify({
+        funds: [
+          { id: "f1", name: "ONE", quantity: 50, price: 1, target: 50 },
+          { id: "f2", name: "TWO", quantity: 50, price: 1, target: 50 },
+        ],
+        cash: 0,
+        withdrawal: 0,
+        plat: 100,
+        settings: { rel: 25, cap: 5 },
+        saved: "",
+      }),
+    );
+  });
+  await page.goto("/");
+
+  const cash = page.getByLabel("Cash available to invest in pounds");
+  const withdrawalSection = page
+    .locator("details")
+    .filter({ has: page.locator("summary", { hasText: "4. Cash to take out" }) });
+  const withdrawal = withdrawalSection.getByLabel("Cash you would like to take out, in pounds");
+  await expect(cash).toHaveValue("");
+  await expect(cash).toHaveAttribute("placeholder", "0.00");
+  await withdrawalSection.locator("summary").click();
+  await expect(withdrawal).toHaveValue("");
+  await expect(withdrawal).toHaveAttribute("placeholder", "0.00");
+
+  await cash.fill("0");
+  await cash.blur();
+  await withdrawal.fill("0");
+  await withdrawal.blur();
+  await expect(cash).toHaveValue("");
+  await expect(withdrawal).toHaveValue("");
+
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const saved = JSON.parse(localStorage.getItem("portfolio-rebalancer-v2") ?? "{}");
+        return [saved.cash, saved.withdrawal];
+      }),
+    )
+    .toEqual([null, null]);
+
+  await page.reload();
+  await expect(cash).toHaveValue("");
+  await expect(cash).toHaveAttribute("placeholder", "0.00");
+  await expect(withdrawal).toHaveValue("");
+  await expect(withdrawal).toHaveAttribute("placeholder", "0.00");
+});
+
 test("UI overall flow", async ({ page }) => {
   await page.addInitScript(() => localStorage.clear());
   await page.goto("/");

@@ -4,7 +4,9 @@ import {
   formatPercent,
   formatPounds,
   formatQuantity,
+  formatOptionalPounds,
   parseNum,
+  parseOptionalPounds,
   parsePercent,
   parsePounds,
   parsePence,
@@ -96,8 +98,8 @@ export function fromStoredFund(f: Record<string, unknown>): Fund {
 export function toStoredState(s: State, saved: string): StoredState {
   return {
     funds: s.funds.map(toStoredFund),
-    cash: parsePounds(s.cash),
-    withdrawal: parsePounds(s.withdrawal),
+    cash: parseOptionalPounds(s.cash),
+    withdrawal: parseOptionalPounds(s.withdrawal),
     plat: parsePounds(s.plat),
     settings: {
       rel: parsePercent(s.settings.rel) ?? 25,
@@ -123,8 +125,8 @@ export function load(): State {
 
     return {
       funds: p.funds.slice(0, 10).map((f: Record<string, unknown>) => fromStoredFund(f ?? {})),
-      cash: cashNum !== null ? formatPounds(String(cashNum)) : "",
-      withdrawal: withdrawalNum !== null ? formatPounds(String(withdrawalNum)) : "",
+      cash: cashNum !== null ? formatOptionalPounds(String(cashNum)) : "",
+      withdrawal: withdrawalNum !== null ? formatOptionalPounds(String(withdrawalNum)) : "",
       plat: platNum !== null ? formatPounds(String(platNum)) : "",
       settings: {
         rel: relNum !== null ? String(relNum) : "25",

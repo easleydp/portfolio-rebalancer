@@ -224,6 +224,28 @@ describe("state serialization & localStorage persistence", () => {
     expect(load().withdrawal).toBe("");
   });
 
+  it("loads zero cash and withdrawal amounts as blank", () => {
+    localStorage.setItem(
+      KEY,
+      JSON.stringify({
+        funds: [{ id: "f1", name: "Fund", quantity: 1, price: 1, target: 100 }],
+        cash: 0,
+        withdrawal: 0,
+        plat: 1,
+        settings: { rel: 25, cap: 5 },
+        saved: "",
+      }),
+    );
+    expect(load()).toMatchObject({ cash: "", withdrawal: "" });
+  });
+
+  it("stores zero cash and withdrawal amounts as blank", () => {
+    const state = defaults();
+    state.cash = "0";
+    state.withdrawal = "0";
+    expect(toStoredState(state, "")).toMatchObject({ cash: null, withdrawal: null });
+  });
+
   it("clears saved state from localStorage", () => {
     save(defaults());
     expect(localStorage.getItem(KEY)).toBeTruthy();

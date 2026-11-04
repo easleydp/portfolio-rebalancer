@@ -36,6 +36,12 @@ export function parsePounds(input: string): number | null {
   return parseFormattedNumber(input, value.startsWith("£") ? "£" : undefined);
 }
 
+/** Parse an optional pounds amount, treating zero as blank. */
+export function parseOptionalPounds(input: string): number | null {
+  const value = parsePounds(input);
+  return value === 0 ? null : value;
+}
+
 /** Like parseNum, but for pence-denominated fields: a £ prefix is treated as pounds and
  *  converted to pence (×100). e.g. "£12" → 1200, "1206" → 1206, "1,206.00p" → 1206. */
 export function parsePence(input: string): number | null {
@@ -74,6 +80,11 @@ export function formatPounds(input: string): string {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       });
+}
+
+/** Format an optional pounds amount, leaving zero blank. */
+export function formatOptionalPounds(input: string): string {
+  return parsePounds(input) === 0 ? "" : formatPounds(input);
 }
 
 /** Tidy a percentage on blur: "30%" → "30". Invalid input is returned untouched. */

@@ -3,7 +3,9 @@ import {
   formatPence,
   formatPercent,
   formatPounds,
+  formatOptionalPounds,
   formatQuantity,
+  parseOptionalPounds,
   parsePercent,
   parsePounds,
   parsePence,
@@ -134,5 +136,20 @@ describe("formatPounds", () => {
     expect(formatPounds("")).toBe("");
     expect(formatPounds("abc")).toBe("abc");
     expect(formatPounds("-5")).toBe("-5");
+  });
+});
+
+describe("optional pounds amounts", () => {
+  it("treats zero as blank when parsing and formatting", () => {
+    expect(parseOptionalPounds("0")).toBeNull();
+    expect(parseOptionalPounds("£0.00")).toBeNull();
+    expect(formatOptionalPounds("0")).toBe("");
+    expect(formatOptionalPounds("£0.00")).toBe("");
+  });
+
+  it("formats positive amounts and leaves invalid input unchanged", () => {
+    expect(parseOptionalPounds("12.50")).toBe(12.5);
+    expect(formatOptionalPounds("12.5")).toBe("12.50");
+    expect(formatOptionalPounds("invalid")).toBe("invalid");
   });
 });

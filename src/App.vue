@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from "vue";
 import FundRow from "./components/FundRow.vue";
 import { usePortfolio } from "./composables/usePortfolio";
-import { formatPounds, gbp, pct } from "./lib/format";
+import { formatOptionalPounds, formatPounds, gbp, pct } from "./lib/format";
 
 const {
   state,
@@ -149,7 +149,7 @@ const confirmReset = () => {
           placeholder="0.00"
           aria-label="Cash available to invest in pounds"
           :aria-invalid="cashInvalid"
-          @blur="state.cash = formatPounds(state.cash)"
+          @blur="state.cash = formatOptionalPounds(state.cash)"
         />
       </div>
     </section>
@@ -214,7 +214,7 @@ const confirmReset = () => {
             placeholder="0.00"
             aria-label="Cash you would like to take out, in pounds"
             :aria-invalid="withdrawalInvalid"
-            @blur="state.withdrawal = formatPounds(state.withdrawal)"
+            @blur="state.withdrawal = formatOptionalPounds(state.withdrawal)"
           />
         </div>
       </details>
