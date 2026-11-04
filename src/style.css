@@ -71,6 +71,12 @@ summary > h2 {
 summary > .opt {
   margin-left: 0.25em;
 }
+.withdrawal-details.has-withdrawal > summary::marker {
+  content: none;
+}
+.withdrawal-details.has-withdrawal > summary::-webkit-details-marker {
+  display: none;
+}
 .lead {
   color: var(--mute);
   margin: 0 0 20px;

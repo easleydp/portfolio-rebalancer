@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onMounted, ref } from "vue";
 import FundRow from "./components/FundRow.vue";
 import { usePortfolio } from "./composables/usePortfolio";
 import { formatPounds, gbp, pct } from "./lib/format";
@@ -25,6 +25,14 @@ const {
   remove,
   reset,
 } = usePortfolio();
+
+const withdrawalSection = ref<HTMLDetailsElement | null>(null);
+
+onMounted(() => {
+  if (withdrawal.value > 0 && withdrawalSection.value) {
+    withdrawalSection.value.open = true;
+  }
+});
 
 const waiting = computed(() =>
   [
@@ -183,7 +191,11 @@ const confirmReset = () => {
     </section>
 
     <section class="noprint" aria-labelledby="h-withdrawal">
-      <details>
+      <details
+        ref="withdrawalSection"
+        class="withdrawal-details"
+        :class="{ 'has-withdrawal': withdrawal > 0 }"
+      >
         <summary>
           <h2 id="h-withdrawal">4. Cash to take out</h2>
           <span class="opt">(use this section if you want to take some cash out)</span>

@@ -72,6 +72,44 @@ async function assertPageIsClear(page: Page) {
   await expect(withdrawal).toHaveJSProperty("open", false);
 }
 
+test("expands the withdrawal section and hides its marker for a saved withdrawal", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      "portfolio-rebalancer-v2",
+      JSON.stringify({
+        funds: [
+          { id: "f1", name: "ONE", quantity: 50, price: 1, target: 50 },
+          { id: "f2", name: "TWO", quantity: 50, price: 1, target: 50 },
+        ],
+        cash: 0,
+        withdrawal: 25,
+        plat: 100,
+        settings: { rel: 25, cap: 5 },
+        saved: "",
+      }),
+    );
+  });
+  await page.goto("/");
+
+  const withdrawal = page
+    .locator("details")
+    .filter({ has: page.locator("summary", { hasText: "4. Cash to take out" }) });
+  await expect(withdrawal).toHaveClass(/has-withdrawal/);
+  await expect(withdrawal).toHaveJSProperty("open", true);
+  await expect(withdrawal.getByLabel("Cash you would like to take out, in pounds")).toHaveValue(
+    "25.00",
+  );
+  await expect
+    .poll(() =>
+      withdrawal
+        .locator("summary")
+        .evaluate((summary) => getComputedStyle(summary, "::marker").content),
+    )
+    .toBe("none");
+});
+
 test("UI overall flow", async ({ page }) => {
   await page.addInitScript(() => localStorage.clear());
   await page.goto("/");
@@ -404,7 +442,17 @@ test("uses spare cash for a withdrawal before suggesting any sales", async ({ pa
   await expect(withdrawalSection).toHaveJSProperty("open", false);
   await withdrawalSection.locator("summary").click();
   await withdrawalSection.getByLabel("Cash you would like to take out, in pounds").fill("30");
-
+  await expect(withdrawalSection).toHaveJSProperty("open", true);
+  await expect
+    .poll(() =>
+      withdrawalSection
+        .locator("summary")
+        .evaluate((summary) => getComputedStyle(summary, "::marker").content),
+    )
+    .toBe("none");
+  const withdrawalInput = withdrawalSection.getByLabel(
+    "Cash you would like to take out, in pounds",
+  );
   const actionsSection = page.getByRole("region", { name: "5. What to do" });
   await expect(actionsSection.locator(".banner.fine")).toContainText("No rebalancing needed");
   await expect(actionsSection.locator(".banner.fine small")).toContainText(
@@ -415,6 +463,13 @@ test("uses spare cash for a withdrawal before suggesting any sales", async ({ pa
   await expect(actionsSection.locator(".banner.note")).toContainText(
     "After taking out £30.00, you have £70.00 in cash",
   );
+
+  await withdrawalInput.fill("");
+  await expect(withdrawalSection).toHaveJSProperty("open", true);
+  await withdrawalInput.fill("0");
+  await expect(withdrawalSection).toHaveJSProperty("open", true);
+  await withdrawalSection.locator("summary").click();
+  await expect(withdrawalSection).toHaveJSProperty("open", false);
 });
 
 test("suggests sales when cash available is less than the requested withdrawal", async ({
