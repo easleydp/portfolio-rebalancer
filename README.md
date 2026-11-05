@@ -17,7 +17,9 @@ Fill in what you hold today. The page will tell you whether anything needs buyin
 
 3. **Check your numbers**. Type in the total value your platform shows for the whole portfolio. If it doesn't roughly match what you entered, the page will say so and try to point out the likely mistake.
 
-4. **Read the result**. Each fund gets an acceptable range around its target. If any fund has moved outside its range, you'll see what to buy or sell to get back on track. Otherwise, you're told nothing needs doing. You can adjust how wide the ranges are in Settings.
+4. **Choose whether to take out cash**. Leave this section closed if you don't need to withdraw any money. Cash you've entered to invest counts towards the amount you want to take out. The app may also suggest trades to keep funds within their target ranges.
+
+5. **Read the result**. Each fund gets an acceptable range around its target. If any fund has moved outside its range, you'll see what to buy or sell to get back on track. Otherwise, you're told nothing needs doing. You can adjust how wide the ranges are in Settings.
 
 **Next time**: open the page in the same browser. Your last entries will still be here, so just update the quantities and prices.
 

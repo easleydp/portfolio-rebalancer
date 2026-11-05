@@ -67,6 +67,33 @@ describe("rebalance", () => {
     expect(p.needed).toBe(true);
     expect(p.rows.map((r) => r.qty)).toEqual([-20, 20]);
   });
+  it("sells shares to cover a withdrawal after using available cash", () => {
+    const p = rebalance([h("A", 50, 1, 50), h("B", 50, 1, 50)], 20, opts, 30);
+    expect(p).toMatchObject({
+      needed: true,
+      cash: 20,
+      withdrawal: 30,
+      left: 0,
+    });
+    expect(p.rows.map((r) => r.qty)).toEqual([-5, -5]);
+  });
+  it("does not sell shares when invested cash already covers a withdrawal", () => {
+    const p = rebalance([h("A", 50, 1, 50), h("B", 50, 1, 50)], 100, opts, 30);
+    expect(p.needed).toBe(false);
+    expect(p.cashAdvice).toEqual({
+      kind: "spread",
+      purchases: [
+        { name: "A", qty: 35, cost: 35 },
+        { name: "B", qty: 35, cost: 35 },
+      ],
+      left: 0,
+    });
+  });
+  it("can still recommend purchases while selling shares to fund a withdrawal", () => {
+    const p = rebalance([h("A", 20, 1, 50), h("B", 80, 1, 50)], 0, opts, 10);
+    expect(p.needed).toBe(true);
+    expect(p.rows.map((r) => r.qty)).toEqual([25, -35]);
+  });
   it("always rounds trades to whole shares", () => {
     const p = rebalance([h("A", 7, 1, 50), h("B", 3, 1, 50)], 0, opts);
     expect(p.rows.map((r) => r.qty)).toEqual([-2, 2]);

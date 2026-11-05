@@ -132,6 +132,7 @@ describe("state serialization & localStorage persistence", () => {
         { id: "f2", name: "Fund B", quantity: "500", price: "1,206.00p", target: "40" },
       ],
       cash: "1,000.00",
+      withdrawal: "500.00",
       plat: "44,000.00",
       settings: { rel: "25", cap: "5" },
       saved: "",
@@ -144,6 +145,7 @@ describe("state serialization & localStorage persistence", () => {
         { id: "f2", name: "Fund B", quantity: 500, price: 12.06, target: 40 },
       ],
       cash: 1000,
+      withdrawal: 500,
       plat: 44000,
       settings: {
         rel: 25,
@@ -162,6 +164,7 @@ describe("state serialization & localStorage persistence", () => {
         { id: "f2", name: "Fund B", quantity: "500", price: "1,206.00p", target: "40" },
       ],
       cash: "1,000.00",
+      withdrawal: "500.00",
       plat: "44,000.00",
       settings: { rel: "25", cap: "5" },
       saved: "",
@@ -175,6 +178,7 @@ describe("state serialization & localStorage persistence", () => {
     expect(raw).toBeTruthy();
     const parsed = JSON.parse(raw!);
     expect(parsed.cash).toBe(1000);
+    expect(parsed.withdrawal).toBe(500);
     expect(parsed.plat).toBe(44000);
     expect(parsed.settings.rel).toBe(25);
     expect(parsed.settings.cap).toBe(5);
@@ -185,6 +189,7 @@ describe("state serialization & localStorage persistence", () => {
     // Load back
     const loaded = load();
     expect(loaded.cash).toBe("1,000.00");
+    expect(loaded.withdrawal).toBe("500.00");
     expect(loaded.plat).toBe("44,000.00");
     expect(loaded.settings.rel).toBe("25");
     expect(loaded.settings.cap).toBe("5");
@@ -198,10 +203,47 @@ describe("state serialization & localStorage persistence", () => {
     localStorage.setItem("portfolio-rebalancer-v1", JSON.stringify({ cash: "999" }));
     const loaded = load();
     expect(loaded.cash).toBe("");
+    expect(loaded.withdrawal).toBe("");
     expect(loaded.plat).toBe("");
     expect(loaded.funds.length).toBe(3);
     expect(loaded.funds[0].name).toBe("");
     expect(loaded.settings).toEqual({ rel: "25", cap: "5" });
+  });
+
+  it("loads saved state from before withdrawals were added", () => {
+    localStorage.setItem(
+      KEY,
+      JSON.stringify({
+        funds: [{ id: "f1", name: "Fund", quantity: 1, price: 1, target: 100 }],
+        cash: 0,
+        plat: 1,
+        settings: { rel: 25, cap: 5 },
+        saved: "",
+      }),
+    );
+    expect(load().withdrawal).toBe("");
+  });
+
+  it("loads zero cash and withdrawal amounts as blank", () => {
+    localStorage.setItem(
+      KEY,
+      JSON.stringify({
+        funds: [{ id: "f1", name: "Fund", quantity: 1, price: 1, target: 100 }],
+        cash: 0,
+        withdrawal: 0,
+        plat: 1,
+        settings: { rel: 25, cap: 5 },
+        saved: "",
+      }),
+    );
+    expect(load()).toMatchObject({ cash: "", withdrawal: "" });
+  });
+
+  it("stores zero cash and withdrawal amounts as blank", () => {
+    const state = defaults();
+    state.cash = "0";
+    state.withdrawal = "0";
+    expect(toStoredState(state, "")).toMatchObject({ cash: null, withdrawal: null });
   });
 
   it("clears saved state from localStorage", () => {

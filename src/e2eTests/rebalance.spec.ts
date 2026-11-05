@@ -30,7 +30,7 @@ async function assertPageIsClear(page: Page) {
   const fundsSection = page.getByRole("region", { name: "1. Your funds" });
   const cashSection = page.getByRole("region", { name: "2. Cash to invest (optional)" });
   const numbersSection = page.getByRole("region", { name: "3. Check your numbers" });
-  const actionsSection = page.getByRole("region", { name: "4. What to do" });
+  const actionsSection = page.getByRole("region", { name: "5. What to do" });
 
   await expect(fundsSection.locator(".row")).toHaveCount(3);
   for (const row of await fundsSection.locator(".row").all()) {
@@ -66,7 +66,102 @@ async function assertPageIsClear(page: Page) {
     .locator("details")
     .filter({ has: page.locator("summary", { hasText: "Settings" }) });
   await expect(settings).toHaveJSProperty("open", false);
+  const withdrawal = page
+    .locator("details")
+    .filter({ has: page.locator("summary", { hasText: "4. Cash to take out" }) });
+  await expect(withdrawal).toHaveJSProperty("open", false);
 }
+
+test("expands the withdrawal section and hides its marker for a saved withdrawal", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      "portfolio-rebalancer-v2",
+      JSON.stringify({
+        funds: [
+          { id: "f1", name: "ONE", quantity: 50, price: 1, target: 50 },
+          { id: "f2", name: "TWO", quantity: 50, price: 1, target: 50 },
+        ],
+        cash: 0,
+        withdrawal: 25,
+        plat: 100,
+        settings: { rel: 25, cap: 5 },
+        saved: "",
+      }),
+    );
+  });
+  await page.goto("/");
+
+  const withdrawal = page
+    .locator("details")
+    .filter({ has: page.locator("summary", { hasText: "4. Cash to take out" }) });
+  await expect(withdrawal).toHaveClass(/has-withdrawal/);
+  await expect(withdrawal).toHaveJSProperty("open", true);
+  await expect(withdrawal.getByLabel("Cash you would like to take out, in pounds")).toHaveValue(
+    "25.00",
+  );
+  await expect
+    .poll(() =>
+      withdrawal
+        .locator("summary")
+        .evaluate((summary) => getComputedStyle(summary, "::marker").content),
+    )
+    .toBe("none");
+});
+
+test("normalises zero optional cash amounts to blank before and after reload", async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      "portfolio-rebalancer-v2",
+      JSON.stringify({
+        funds: [
+          { id: "f1", name: "ONE", quantity: 50, price: 1, target: 50 },
+          { id: "f2", name: "TWO", quantity: 50, price: 1, target: 50 },
+        ],
+        cash: 0,
+        withdrawal: 0,
+        plat: 100,
+        settings: { rel: 25, cap: 5 },
+        saved: "",
+      }),
+    );
+  });
+  await page.goto("/");
+
+  const cash = page.getByLabel("Cash available to invest in pounds");
+  const withdrawalSection = page
+    .locator("details")
+    .filter({ has: page.locator("summary", { hasText: "4. Cash to take out" }) });
+  const withdrawal = withdrawalSection.getByLabel("Cash you would like to take out, in pounds");
+  await expect(cash).toHaveValue("");
+  await expect(cash).toHaveAttribute("placeholder", "0.00");
+  await withdrawalSection.locator("summary").click();
+  await expect(withdrawal).toHaveValue("");
+  await expect(withdrawal).toHaveAttribute("placeholder", "0.00");
+
+  await cash.fill("0");
+  await cash.blur();
+  await withdrawal.fill("0");
+  await withdrawal.blur();
+  await expect(cash).toHaveValue("");
+  await expect(withdrawal).toHaveValue("");
+
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const saved = JSON.parse(localStorage.getItem("portfolio-rebalancer-v2") ?? "{}");
+        return [saved.cash, saved.withdrawal];
+      }),
+    )
+    .toEqual([null, null]);
+
+  await page.reload();
+  await expect(cash).toHaveValue("");
+  await expect(cash).toHaveAttribute("placeholder", "0.00");
+  await expect(withdrawal).toHaveValue("");
+  await expect(withdrawal).toHaveAttribute("placeholder", "0.00");
+});
 
 test("UI overall flow", async ({ page }) => {
   await page.addInitScript(() => localStorage.clear());
@@ -98,7 +193,7 @@ test("UI overall flow", async ({ page }) => {
 
   const firstFund = fundsSection.locator(".row").first();
   await firstFund.getByLabel("Fund name or ticker").fill("ONE");
-  const actionsSection = page.getByRole("region", { name: "4. What to do" });
+  const actionsSection = page.getByRole("region", { name: "5. What to do" });
   await expect(actionsSection.locator(".banner.note")).toContainText("Waiting for your details");
   await expect(actionsSection.locator(".banner.note small")).toHaveText(
     "Every fund needs a name, quantity, a price and a target. Enter at least two funds. Targets must add up to exactly 100%.",
@@ -316,7 +411,7 @@ test("clears all entered data", async ({ page }) => {
 
   await page.getByLabel("Cash available to invest in pounds").fill("0");
   await page.getByLabel("Total portfolio value shown on your platform, in pounds").fill("100");
-  const actionsSection = page.getByRole("region", { name: "4. What to do" });
+  const actionsSection = page.getByRole("region", { name: "5. What to do" });
   await expect(actionsSection.locator(".banner.fine")).toContainText("No rebalancing needed");
 
   page.once("dialog", async (dialog) => {
@@ -343,7 +438,7 @@ test("suggests spreading a large cash balance across funds", async ({ page }) =>
   await page.getByLabel("Cash available to invest in pounds").fill("100");
   await page.getByLabel("Total portfolio value shown on your platform, in pounds").fill("200");
 
-  const actionsSection = page.getByRole("region", { name: "4. What to do" });
+  const actionsSection = page.getByRole("region", { name: "5. What to do" });
   await expect(actionsSection.locator(".banner.fine")).toContainText("No rebalancing needed");
   const cashAdvice = actionsSection.locator(".banner.note");
   await expect(cashAdvice).toContainText("To spread it towards your targets");
@@ -372,11 +467,94 @@ test("keeps the simple cash suggestion for one clear shortfall", async ({ page }
   await page.getByLabel("Cash available to invest in pounds").fill("1");
   await page.getByLabel("Total portfolio value shown on your platform, in pounds").fill("101");
 
-  const actionsSection = page.getByRole("region", { name: "4. What to do" });
+  const actionsSection = page.getByRole("region", { name: "5. What to do" });
   await expect(actionsSection.locator(".banner.fine")).toContainText("No rebalancing needed");
   await expect(actionsSection.locator(".banner.note")).toContainText(
     "If you want to invest it, the fund furthest below target is ONE.",
   );
+});
+
+test("uses spare cash for a withdrawal before suggesting any sales", async ({ page }) => {
+  await page.addInitScript(() => localStorage.clear());
+  await page.goto("/");
+
+  const funds = page.locator(".row");
+  for (const [index, name] of ["ONE", "TWO"].entries()) {
+    const fund = funds.nth(index);
+    await fund.getByLabel("Fund name or ticker").fill(name);
+    await fund.getByLabel("Quantity").fill("50");
+    await fund.getByLabel("Price (pence)").fill("100");
+    await fund.getByLabel("Target (%)").fill("50");
+  }
+  await page.getByLabel("Cash available to invest in pounds").fill("100");
+  await page.getByLabel("Total portfolio value shown on your platform, in pounds").fill("200");
+
+  const withdrawalSection = page
+    .locator("details")
+    .filter({ has: page.locator("summary", { hasText: "4. Cash to take out" }) });
+  await expect(withdrawalSection).toHaveJSProperty("open", false);
+  await withdrawalSection.locator("summary").click();
+  await withdrawalSection.getByLabel("Cash you would like to take out, in pounds").fill("30");
+  await expect(withdrawalSection).toHaveJSProperty("open", true);
+  await expect
+    .poll(() =>
+      withdrawalSection
+        .locator("summary")
+        .evaluate((summary) => getComputedStyle(summary, "::marker").content),
+    )
+    .toBe("none");
+  const withdrawalInput = withdrawalSection.getByLabel(
+    "Cash you would like to take out, in pounds",
+  );
+  const actionsSection = page.getByRole("region", { name: "5. What to do" });
+  await expect(actionsSection.locator(".banner.fine")).toContainText("No rebalancing needed");
+  await expect(actionsSection.locator(".banner.fine small")).toContainText(
+    "you already have enough cash to take out £30.00",
+  );
+  await expect(actionsSection.locator("table")).toHaveCount(1);
+  await expect(actionsSection.locator("thead th")).toHaveCount(5);
+  await expect(actionsSection.locator(".banner.note")).toContainText(
+    "After taking out £30.00, you have £70.00 in cash",
+  );
+
+  await withdrawalInput.fill("");
+  await expect(withdrawalSection).toHaveJSProperty("open", true);
+  await withdrawalInput.fill("0");
+  await expect(withdrawalSection).toHaveJSProperty("open", true);
+  await withdrawalSection.locator("summary").click();
+  await expect(withdrawalSection).toHaveJSProperty("open", false);
+});
+
+test("suggests sales when cash available is less than the requested withdrawal", async ({
+  page,
+}) => {
+  await page.addInitScript(() => localStorage.clear());
+  await page.goto("/");
+
+  const funds = page.locator(".row");
+  for (const [index, name] of ["ONE", "TWO"].entries()) {
+    const fund = funds.nth(index);
+    await fund.getByLabel("Fund name or ticker").fill(name);
+    await fund.getByLabel("Quantity").fill("50");
+    await fund.getByLabel("Price (pence)").fill("100");
+    await fund.getByLabel("Target (%)").fill("50");
+  }
+  await page.getByLabel("Cash available to invest in pounds").fill("20");
+  await page.getByLabel("Total portfolio value shown on your platform, in pounds").fill("120");
+
+  const withdrawalSection = page
+    .locator("details")
+    .filter({ has: page.locator("summary", { hasText: "4. Cash to take out" }) });
+  await withdrawalSection.locator("summary").click();
+  await withdrawalSection.getByLabel("Cash you would like to take out, in pounds").fill("30");
+
+  const actionsSection = page.getByRole("region", { name: "5. What to do" });
+  await expect(actionsSection.locator(".banner.act")).toContainText("Rebalancing is needed");
+  await expect(actionsSection.locator(".banner.act small")).toContainText(
+    "sell shares to raise the cash you want to take out",
+  );
+  await expect(actionsSection.locator("tbody tr").nth(0)).toContainText("Sell 5 shares");
+  await expect(actionsSection.locator("tbody tr").nth(1)).toContainText("Sell 5 shares");
 });
 
 test("marks invalid form fields accessibly and visually", async ({ page }) => {
@@ -420,6 +598,13 @@ test("marks invalid form fields accessibly and visually", async ({ page }) => {
   await expectInvalidField(cash);
   await cash.fill("£10");
   await expectValidField(cash);
+
+  const withdrawal = page.getByLabel("Cash you would like to take out, in pounds");
+  await page.locator("summary").filter({ hasText: "4. Cash to take out" }).click();
+  await withdrawal.fill("ten");
+  await expectInvalidField(withdrawal);
+  await withdrawal.fill("£10");
+  await expectValidField(withdrawal);
 
   const platform = page.getByLabel("Total portfolio value shown on your platform, in pounds");
   await platform.fill("total");

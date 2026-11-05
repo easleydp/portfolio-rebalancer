@@ -51,6 +51,10 @@ export function usePortfolio() {
   );
   const cashInvalid = computed(() => state.cash.trim() !== "" && parsePounds(state.cash) === null);
   const cash = computed(() => Math.max(0, parsePounds(state.cash) ?? 0));
+  const withdrawalInvalid = computed(
+    () => state.withdrawal.trim() !== "" && parsePounds(state.withdrawal) === null,
+  );
+  const withdrawal = computed(() => Math.max(0, parsePounds(state.withdrawal) ?? 0));
   const total = computed(() => parsed.value.holdings.reduce((a, h) => a + h.quantity * h.price, 0));
   const platformInvalid = computed(
     () => state.plat.trim() !== "" && parsePounds(state.plat) === null,
@@ -73,16 +77,22 @@ export function usePortfolio() {
     if (
       !ready.value ||
       cashInvalid.value ||
+      withdrawalInvalid.value ||
       settingsInvalid.value ||
       !check.value?.ok ||
       total.value <= 0
     )
       return null;
     const { rel, cap } = state.settings;
-    return rebalance(parsed.value.holdings, cash.value, {
-      rel: parsePercent(rel) ?? 25,
-      cap: parsePercent(cap),
-    });
+    return rebalance(
+      parsed.value.holdings,
+      cash.value,
+      {
+        rel: parsePercent(rel) ?? 25,
+        cap: parsePercent(cap),
+      },
+      withdrawal.value,
+    );
   });
 
   const add = () => {
@@ -112,6 +122,8 @@ export function usePortfolio() {
     ready,
     cash,
     cashInvalid,
+    withdrawal,
+    withdrawalInvalid,
     total,
     platform,
     platformInvalid,

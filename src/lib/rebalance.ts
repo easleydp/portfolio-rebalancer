@@ -44,6 +44,7 @@ export interface Plan {
   needed: boolean;
   total: number;
   cash: number;
+  withdrawal: number;
   left: number;
   cashAdvice: CashAdvice | null;
 }
@@ -129,12 +130,14 @@ export function rebalance(
   holdings: Holding[],
   cash: number,
   o: { rel: number; cap: number | null },
+  withdrawal = 0,
 ): Plan {
   const total = holdings.reduce((a, h) => a + h.quantity * h.price, 0);
   if (!holdings.length || total <= 0) {
     throw new Error("`rebalance` requires at least one holding with positive total value");
   }
-  const newTotal = total + cash;
+  const cashAfterWithdrawal = cash - withdrawal;
+  const newTotal = Math.max(0, total + cashAfterWithdrawal);
   const rows: Row[] = holdings.map((h) => {
     const value = h.quantity * h.price;
     const weight = (value / total) * 100;
@@ -154,14 +157,16 @@ export function rebalance(
       cost: q * h.price,
     };
   });
-  const left = cash - rows.reduce((a, r) => a + r.cost, 0);
-  const needed = rows.some((r) => r.off);
-  const cashAdvice = !needed && cash > 0 ? adviseSpareCash(rows, total, cash) : null;
+  const left = cashAfterWithdrawal - rows.reduce((a, r) => a + r.cost, 0);
+  const needed = rows.some((r) => r.off) || withdrawal > cash;
+  const cashAdvice =
+    !needed && cashAfterWithdrawal > 0 ? adviseSpareCash(rows, total, cashAfterWithdrawal) : null;
   return {
     rows,
     needed,
     total,
     cash,
+    withdrawal,
     left,
     cashAdvice,
   };

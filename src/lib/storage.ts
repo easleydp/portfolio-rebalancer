@@ -4,7 +4,9 @@ import {
   formatPercent,
   formatPounds,
   formatQuantity,
+  formatOptionalPounds,
   parseNum,
+  parseOptionalPounds,
   parsePercent,
   parsePounds,
   parsePence,
@@ -14,6 +16,7 @@ import type { Fund, Settings } from "./rebalance";
 export interface State {
   funds: Fund[];
   cash: string;
+  withdrawal: string;
   plat: string;
   settings: Settings;
   saved: string;
@@ -35,6 +38,7 @@ export interface StoredSettings {
 export interface StoredState {
   funds: StoredFund[];
   cash: number | null; // in pounds
+  withdrawal: number | null; // in pounds
   plat: number | null; // in pounds
   settings: StoredSettings;
   saved: string;
@@ -54,6 +58,7 @@ export const newFund = (): Fund => ({
 export const defaults = (): State => ({
   funds: [newFund(), newFund(), newFund()],
   cash: "",
+  withdrawal: "",
   plat: "",
   settings: { rel: "25", cap: "5" },
   saved: "",
@@ -93,7 +98,8 @@ export function fromStoredFund(f: Record<string, unknown>): Fund {
 export function toStoredState(s: State, saved: string): StoredState {
   return {
     funds: s.funds.map(toStoredFund),
-    cash: parsePounds(s.cash),
+    cash: parseOptionalPounds(s.cash),
+    withdrawal: parseOptionalPounds(s.withdrawal),
     plat: parsePounds(s.plat),
     settings: {
       rel: parsePercent(s.settings.rel) ?? 25,
@@ -112,13 +118,15 @@ export function load(): State {
     const s =
       p.settings && typeof p.settings === "object" ? (p.settings as Record<string, unknown>) : {};
     const cashNum = num(p.cash);
+    const withdrawalNum = num(p.withdrawal);
     const platNum = num(p.plat);
     const relNum = num(s.rel);
     const capNum = num(s.cap);
 
     return {
       funds: p.funds.slice(0, 10).map((f: Record<string, unknown>) => fromStoredFund(f ?? {})),
-      cash: cashNum !== null ? formatPounds(String(cashNum)) : "",
+      cash: cashNum !== null ? formatOptionalPounds(String(cashNum)) : "",
+      withdrawal: withdrawalNum !== null ? formatOptionalPounds(String(withdrawalNum)) : "",
       plat: platNum !== null ? formatPounds(String(platNum)) : "",
       settings: {
         rel: relNum !== null ? String(relNum) : "25",
