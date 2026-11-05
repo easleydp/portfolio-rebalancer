@@ -27,8 +27,15 @@ const {
 } = usePortfolio();
 
 const withdrawalSection = ref<HTMLDetailsElement | null>(null);
+const storageLocation = ref("computer");
 
 onMounted(() => {
+  const userAgent = navigator.userAgent;
+  const isMobileDevice =
+    /Android|iPhone|iPad|iPod|Mobile|Tablet/i.test(userAgent) ||
+    (/Macintosh/i.test(userAgent) && navigator.maxTouchPoints > 1);
+  storageLocation.value = isMobileDevice ? "device" : "computer";
+
   if (withdrawal.value > 0 && withdrawalSection.value) {
     withdrawalSection.value.open = true;
   }
@@ -111,7 +118,7 @@ const confirmReset = () => {
       <p class="hint">
         One row per fund. Enter the quantity in whole shares and copy the “Price” column from your
         investment platform’s dashboard, in pence (for example 1,206.00). Everything you type is
-        saved on this computer.
+        saved on this {{ storageLocation }}.
       </p>
       <FundRow
         v-for="(f, i) in state.funds"
@@ -391,8 +398,8 @@ const confirmReset = () => {
       <button type="button" @click="confirmReset">Clear everything</button>
     </div>
     <p v-if="savedOn" class="foot noprint">
-      Saved on this computer: {{ savedOn }}. Next year, open this page and update the quantities and
-      prices.
+      Saved on this {{ storageLocation }}: {{ savedOn }}. Next year, open this page and update the
+      quantities and prices.
     </p>
     <p class="foot">
       This page only works out numbers. It does not place trades or give financial advice. Prices

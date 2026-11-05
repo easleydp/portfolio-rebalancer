@@ -72,6 +72,61 @@ async function assertPageIsClear(page: Page) {
   await expect(withdrawal).toHaveJSProperty("open", false);
 }
 
+for (const { name, userAgent, maxTouchPoints, expectedLocation } of [
+  {
+    name: "desktop browsers",
+    userAgent: undefined,
+    maxTouchPoints: 0,
+    expectedLocation: "computer",
+  },
+  {
+    name: "mobile phones",
+    userAgent:
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1",
+    maxTouchPoints: 5,
+    expectedLocation: "device",
+  },
+  {
+    name: "iPads using desktop mode",
+    userAgent:
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15",
+    maxTouchPoints: 5,
+    expectedLocation: "device",
+  },
+]) {
+  test(`uses ${expectedLocation} wording on ${name}`, async ({ page }) => {
+    await page.addInitScript(
+      ({ userAgent, maxTouchPoints }) => {
+        if (userAgent) {
+          Object.defineProperty(navigator, "userAgent", { get: () => userAgent });
+        }
+        Object.defineProperty(navigator, "maxTouchPoints", { get: () => maxTouchPoints });
+        localStorage.setItem(
+          "portfolio-rebalancer-v2",
+          JSON.stringify({
+            funds: [
+              { id: "f1", name: "ONE", quantity: 50, price: 1, target: 50 },
+              { id: "f2", name: "TWO", quantity: 50, price: 1, target: 50 },
+            ],
+            cash: null,
+            withdrawal: null,
+            plat: null,
+            settings: { rel: 25, cap: 5 },
+            saved: "2026-01-01T00:00:00.000Z",
+          }),
+        );
+      },
+      { userAgent, maxTouchPoints },
+    );
+    await page.goto("/");
+
+    await expect(page.locator('[aria-labelledby="h-funds"] .hint')).toContainText(
+      `saved on this ${expectedLocation}`,
+    );
+    await expect(page.locator("p.foot.noprint")).toContainText(`Saved on this ${expectedLocation}`);
+  });
+}
+
 test("expands the withdrawal section and hides its marker for a saved withdrawal", async ({
   page,
 }) => {
